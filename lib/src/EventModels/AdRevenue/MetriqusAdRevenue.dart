@@ -1,0 +1,79 @@
+/// Represents ad revenue data, including source, earnings, currency, impressions, and network details.
+class MetriqusAdRevenue {
+  /// The source of the ad revenue data (e.g., platform or provider).
+  String? _source;
+
+  /// The revenue generated from ads, if available.
+  double? _revenue;
+
+  /// The currency in which the revenue is reported.
+  String? _currency;
+
+  /// The total number of ad impressions recorded, if available.
+  int? adImpressionsCount;
+
+  /// The network through which the ad revenue was generated.
+  String? adRevenueNetwork;
+
+  /// The specific ad unit generating the revenue.
+  String? adRevenueUnit;
+
+  /// The placement of the ad that contributed to the revenue.
+  String? adRevenuePlacement;
+
+  // Getters
+  String? get source => _source;
+  double? get revenue => _revenue;
+  String? get currency => _currency;
+
+  /// Default constructor
+  MetriqusAdRevenue();
+
+  /// Initializes a new instance with the specified source.
+  MetriqusAdRevenue.withSource(String source) {
+    _source = source;
+  }
+
+  /// Initializes a new instance with revenue details.
+  MetriqusAdRevenue.withRevenue(
+      String source, double revenue, String currency) {
+    _source = source;
+    _revenue = revenue;
+    _currency = currency;
+  }
+
+  /// Gets the source of the ad revenue data.
+  String? getSource() => _source;
+
+  /// Sets or updates the revenue and currency for this ad revenue record.
+  void setRevenue(double revenue, String currency) {
+    _revenue = revenue;
+    _currency = currency;
+  }
+
+  /// Converts the ad revenue data to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'source': _source,
+      'revenue': _revenue,
+      'currency': _currency,
+      'adImpressionsCount': adImpressionsCount,
+      'adRevenueNetwork': adRevenueNetwork,
+      'adRevenueUnit': adRevenueUnit,
+      'adRevenuePlacement': adRevenuePlacement,
+    };
+  }
+
+  /// Creates an instance from a JSON map.
+  factory MetriqusAdRevenue.fromJson(Map<String, dynamic> json) {
+    final adRevenue = MetriqusAdRevenue();
+    adRevenue._source = json['source'];
+    adRevenue._revenue = json['revenue']?.toDouble();
+    adRevenue._currency = json['currency'];
+    adRevenue.adImpressionsCount = json['adImpressionsCount'];
+    adRevenue.adRevenueNetwork = json['adRevenueNetwork'];
+    adRevenue.adRevenueUnit = json['adRevenueUnit'];
+    adRevenue.adRevenuePlacement = json['adRevenuePlacement'];
+    return adRevenue;
+  }
+}
