@@ -341,7 +341,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
             InstallReferrerClient.InstallReferrerResponse.OK -> {
               try {
                 val response: ReferrerDetails = referrerClient.installReferrer
-                val installTime = response.installBeginTimestampSeconds * 1000 // Convert to milliseconds like iOS
+                val installTime = response.installBeginTimestampSeconds // Keep as seconds
                 
                 // Close the connection after getting data
                 referrerClient.endConnection()
@@ -357,7 +357,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
                 try {
                   val packageManager = context.packageManager
                   val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-                  val fallbackInstallTime = packageInfo.firstInstallTime
+                  val fallbackInstallTime = packageInfo.firstInstallTime / 1000 // Convert to seconds
                   
                   result.success(mapOf<String, Any>(
                     "success" to true,
@@ -366,7 +366,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
                 } catch (fallbackException: Exception) {
                   result.success(mapOf<String, Any>(
                     "success" to false,
-                    "installTime" to System.currentTimeMillis(),
+                    "installTime" to (System.currentTimeMillis() / 1000),
                     "error" to "Error getting install time: ${e.message}"
                   ))
                 }
@@ -378,7 +378,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
               try {
                 val packageManager = context.packageManager
                 val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-                val fallbackInstallTime = packageInfo.firstInstallTime
+                val fallbackInstallTime = packageInfo.firstInstallTime / 1000 // Convert to seconds
                 
                 result.success(mapOf<String, Any>(
                   "success" to true,
@@ -387,7 +387,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
               } catch (e: Exception) {
                 result.success(mapOf<String, Any>(
                   "success" to false,
-                  "installTime" to System.currentTimeMillis(),
+                  "installTime" to (System.currentTimeMillis() / 1000),
                   "error" to "Install Referrer not supported and Package Manager failed: ${e.message}"
                 ))
               }
@@ -398,7 +398,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
               try {
                 val packageManager = context.packageManager
                 val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-                val fallbackInstallTime = packageInfo.firstInstallTime
+                val fallbackInstallTime = packageInfo.firstInstallTime / 1000 // Convert to seconds
                 
                 result.success(mapOf<String, Any>(
                   "success" to true,
@@ -407,7 +407,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
               } catch (e: Exception) {
                 result.success(mapOf<String, Any>(
                   "success" to false,
-                  "installTime" to System.currentTimeMillis(),
+                  "installTime" to (System.currentTimeMillis() / 1000),
                   "error" to "Install Referrer service unavailable and Package Manager failed: ${e.message}"
                 ))
               }
@@ -418,7 +418,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
               try {
                 val packageManager = context.packageManager
                 val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-                val fallbackInstallTime = packageInfo.firstInstallTime
+                val fallbackInstallTime = packageInfo.firstInstallTime / 1000 // Convert to seconds
                 
                 result.success(mapOf<String, Any>(
                   "success" to true,
@@ -427,7 +427,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
               } catch (e: Exception) {
                 result.success(mapOf<String, Any>(
                   "success" to false,
-                  "installTime" to System.currentTimeMillis(),
+                  "installTime" to (System.currentTimeMillis() / 1000),
                   "error" to "Install Referrer failed with code $responseCode and Package Manager failed: ${e.message}"
                 ))
               }
@@ -440,7 +440,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
           try {
             val packageManager = context.packageManager
             val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-            val fallbackInstallTime = packageInfo.firstInstallTime
+            val fallbackInstallTime = packageInfo.firstInstallTime / 1000 // Convert to seconds
             
             result.success(mapOf<String, Any>(
               "success" to true,
@@ -449,7 +449,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
           } catch (e: Exception) {
             result.success(mapOf<String, Any>(
               "success" to false,
-              "installTime" to System.currentTimeMillis(),
+              "installTime" to (System.currentTimeMillis() / 1000),
               "error" to "Install Referrer service disconnected and Package Manager failed: ${e.message}"
             ))
           }
@@ -460,7 +460,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
       try {
         val packageManager = context.packageManager
         val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-        val fallbackInstallTime = packageInfo.firstInstallTime
+        val fallbackInstallTime = packageInfo.firstInstallTime / 1000 // Convert to seconds
         
         result.success(mapOf<String, Any>(
           "success" to true,
@@ -469,7 +469,7 @@ class MetriqusFlutterSdkPlugin: FlutterPlugin, MethodCallHandler {
       } catch (fallbackException: Exception) {
         result.success(mapOf<String, Any>(
           "success" to false,
-          "installTime" to System.currentTimeMillis(),
+          "installTime" to (System.currentTimeMillis() / 1000),
           "error" to "Error initializing Install Referrer and Package Manager failed: ${e.message}"
         ))
       }

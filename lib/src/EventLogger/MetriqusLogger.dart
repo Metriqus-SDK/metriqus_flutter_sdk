@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../Storage/IStorage.dart';
+import '../Utilities/MetriqusUtils.dart';
 import 'Event.dart';
 import 'EventQueueController.dart';
 import 'IEventQueueController.dart';
@@ -20,37 +21,67 @@ class MetriqusLogger {
 
   /// Log event with string parameter
   static void logEvent(
-      String name, String parameterName, String parameterValue) {
-    _eventQueue?.addEvent(Event.withParameters(
-        name, [TypedParameter.string(parameterName, parameterValue)]));
+    String name,
+    String parameterName,
+    String parameterValue,
+  ) {
+    _eventQueue?.addEvent(
+      Event.withParameters(name, [
+        TypedParameter.string(parameterName, parameterValue),
+      ]),
+    );
   }
 
   /// Log event with double parameter
   static void logEventDouble(
-      String name, String parameterName, double parameterValue) {
-    _eventQueue?.addEvent(Event.withParameters(
-        name, [TypedParameter.double(parameterName, parameterValue)]));
+    String name,
+    String parameterName,
+    double parameterValue,
+  ) {
+    _eventQueue?.addEvent(
+      Event.withParameters(name, [
+        TypedParameter.double(parameterName, parameterValue),
+      ]),
+    );
   }
 
   /// Log event with long parameter
   static void logEventLong(
-      String name, String parameterName, int parameterValue) {
-    _eventQueue?.addEvent(Event.withParameters(
-        name, [TypedParameter.long(parameterName, parameterValue)]));
+    String name,
+    String parameterName,
+    int parameterValue,
+  ) {
+    _eventQueue?.addEvent(
+      Event.withParameters(name, [
+        TypedParameter.long(parameterName, parameterValue),
+      ]),
+    );
   }
 
   /// Log event with int parameter
   static void logEventInt(
-      String name, String parameterName, int parameterValue) {
-    _eventQueue?.addEvent(Event.withParameters(
-        name, [TypedParameter.int(parameterName, parameterValue)]));
+    String name,
+    String parameterName,
+    int parameterValue,
+  ) {
+    _eventQueue?.addEvent(
+      Event.withParameters(name, [
+        TypedParameter.int(parameterName, parameterValue),
+      ]),
+    );
   }
 
   /// Log event with bool parameter
   static void logEventBool(
-      String name, String parameterName, bool parameterValue) {
-    _eventQueue?.addEvent(Event.withParameters(
-        name, [TypedParameter.bool(parameterName, parameterValue)]));
+    String name,
+    String parameterName,
+    bool parameterValue,
+  ) {
+    _eventQueue?.addEvent(
+      Event.withParameters(name, [
+        TypedParameter.bool(parameterName, parameterValue),
+      ]),
+    );
   }
 
   /// Log simple event without parameters
@@ -60,23 +91,32 @@ class MetriqusLogger {
 
   /// Log event with multiple parameters
   static void logEventWithParameters(
-      String name, List<TypedParameter> parameters) {
+    String name,
+    List<TypedParameter> parameters,
+  ) {
     _eventQueue?.addEvent(Event.withParameters(name, parameters));
   }
 
   /// Log event from package
-  static void logEventFromPackage(Package package,
-      {bool sendImmediately = false}) {
-    _eventQueue?.addEvent(Event.fromPackage(package),
-        sendImmediately: sendImmediately);
+  static void logEventFromPackage(
+    Package package, {
+    bool sendImmediately = false,
+  }) {
+    _eventQueue?.addEvent(
+      Event.fromPackage(package),
+      sendImmediately: sendImmediately,
+    );
   }
 
   /// Log event with Package object (overloaded method)
-  static void logPackage(PackageBuilder.Package package,
-      {bool sendImmediately = false}) {
+  static void logPackage(
+    PackageBuilder.Package package, {
+    bool sendImmediately = false,
+  }) {
     if (_eventQueue == null) {
       print(
-          "🔧 ERROR: EventQueue is NULL! MetriqusLogger not initialized properly!");
+        "🔧 ERROR: EventQueue is NULL! MetriqusLogger not initialized properly!",
+      );
       return;
     }
 
@@ -98,7 +138,8 @@ class MetriqusLogger {
       clientSdk: package.clientSdk,
       isFirstLaunch: package.isFirstLaunch ?? false,
       eventTimestamp:
-          package.eventTimestamp ?? DateTime.now().millisecondsSinceEpoch,
+          package.eventTimestamp ??
+          MetriqusUtils.getCurrentUtcTimestampSeconds(),
       userId: package.userId,
       userFirstTouchTimestamp: package.userFirstTouchTimestamp ?? 0,
       environment: package.environment ?? 'production',
@@ -154,7 +195,8 @@ class MetriqusLogger {
     // App info
     if (package.appInfo != null) {
       buffer.writeln(
-          "📦 App: ${package.appInfo!.packageName} v${package.appInfo!.appVersion}");
+        "📦 App: ${package.appInfo!.packageName} v${package.appInfo!.appVersion}",
+      );
     } else {
       buffer.writeln("📦 App: null");
     }

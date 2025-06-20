@@ -1,6 +1,7 @@
 import 'dart:convert';
 import '../EventModels/CustomEvents/MetriqusCustomEvent.dart';
 import '../EventModels/MetriqusInAppRevenue.dart';
+import '../Utilities/MetriqusUtils.dart';
 import '../EventModels/AdRevenue/MetriqusAdRevenue.dart';
 import '../EventModels/Attribution/MetriqusAttribution.dart';
 import '../EventLogger/MetriqusLogger.dart';
@@ -28,15 +29,12 @@ class MetriqusPackageSender implements IPackageSender {
 
       if (deviceInfo == null) {
         Metriqus.verboseLog(
-            "Device info not yet available, skipping package send");
+          "Device info not yet available, skipping package send",
+        );
         return;
       }
 
-      final builder = PackageBuilder(
-        settings,
-        deviceInfo,
-        DateTime.now().toUtc(),
-      );
+      final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildCustomEventPackage(customEvent);
 
       MetriqusLogger.logPackage(package);
@@ -61,15 +59,12 @@ class MetriqusPackageSender implements IPackageSender {
 
       if (deviceInfo == null) {
         Metriqus.verboseLog(
-            "Device info not yet available, skipping package send");
+          "Device info not yet available, skipping package send",
+        );
         return;
       }
 
-      final builder = PackageBuilder(
-        settings,
-        deviceInfo,
-        DateTime.now().toUtc(),
-      );
+      final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildSessionStartPackage();
 
       MetriqusLogger.logPackage(package);
@@ -94,15 +89,12 @@ class MetriqusPackageSender implements IPackageSender {
 
       if (deviceInfo == null) {
         Metriqus.verboseLog(
-            "Device info not yet available, skipping package send");
+          "Device info not yet available, skipping package send",
+        );
         return;
       }
 
-      final builder = PackageBuilder(
-        settings,
-        deviceInfo,
-        DateTime.now().toUtc(),
-      );
+      final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildSessionBeatPackage();
 
       MetriqusLogger.logPackage(package);
@@ -127,15 +119,12 @@ class MetriqusPackageSender implements IPackageSender {
 
       if (deviceInfo == null) {
         Metriqus.verboseLog(
-            "Device info not yet available, skipping package send");
+          "Device info not yet available, skipping package send",
+        );
         return;
       }
 
-      final builder = PackageBuilder(
-        settings,
-        deviceInfo,
-        DateTime.now().toUtc(),
-      );
+      final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildIAPEventPackage(metriqusEvent);
 
       MetriqusLogger.logPackage(package);
@@ -160,15 +149,12 @@ class MetriqusPackageSender implements IPackageSender {
 
       if (deviceInfo == null) {
         Metriqus.verboseLog(
-            "Device info not yet available, skipping package send");
+          "Device info not yet available, skipping package send",
+        );
         return;
       }
 
-      final builder = PackageBuilder(
-        settings,
-        deviceInfo,
-        DateTime.now().toUtc(),
-      );
+      final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildAdRevenueEventPackage(adRevenue);
 
       MetriqusLogger.logPackage(package);
@@ -193,15 +179,12 @@ class MetriqusPackageSender implements IPackageSender {
 
       if (deviceInfo == null) {
         Metriqus.verboseLog(
-            "Device info not yet available, skipping package send");
+          "Device info not yet available, skipping package send",
+        );
         return;
       }
 
-      final builder = PackageBuilder(
-        settings,
-        deviceInfo,
-        DateTime.now().toUtc(),
-      );
+      final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildAttributionPackage(attribution);
 
       MetriqusLogger.logPackage(package, sendImmediately: true);

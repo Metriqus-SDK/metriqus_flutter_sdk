@@ -2,6 +2,7 @@
 import 'package:crypto/crypto.dart';
 import '../Storage/IStorage.dart';
 import '../Metriqus.dart';
+import 'MetriqusUtils.dart';
 
 /// Unique user identifier generator and manager
 class UniqueUserIdentifier {
@@ -69,8 +70,8 @@ class UniqueUserIdentifier {
 
       final parts = userId.split('_');
       if (parts.length >= 2) {
-        final timestamp = int.parse(parts[1]);
-        return DateTime.fromMillisecondsSinceEpoch(timestamp);
+        final timestampSeconds = int.parse(parts[1]);
+        return MetriqusUtils.timestampSecondsToDateTime(timestampSeconds);
       }
     } catch (e) {
       Metriqus.errorLog("❌ User ID timestamp extraction error: $e");

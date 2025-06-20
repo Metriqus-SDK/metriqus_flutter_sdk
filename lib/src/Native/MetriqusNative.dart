@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../Storage/IStorage.dart';
+import '../Utilities/MetriqusUtils.dart';
 import '../Storage/Storage.dart';
 import '../Storage/EncryptedStorageHandler.dart';
 import '../MetriqusSettings.dart';
@@ -81,7 +82,8 @@ abstract class MetriqusNative {
       // Wait for cache initialization to complete
       await storage!.waitForCacheInitialization();
       Metriqus.verboseLog(
-          "🔧 [STORAGE] Cache initialization awaited successfully");
+        "🔧 [STORAGE] Cache initialization awaited successfully",
+      );
 
       // Initialize device info
       _deviceInfo = DeviceInfo();
@@ -94,8 +96,11 @@ abstract class MetriqusNative {
       _internetConnectionChecker = InternetConnectionChecker();
 
       // Initialize user identifier and attributes
-      uniqueUserIdentifier =
-          UniqueUserIdentifier(storage!, adId ?? '', _deviceInfo!.deviceId);
+      uniqueUserIdentifier = UniqueUserIdentifier(
+        storage!,
+        adId ?? '',
+        _deviceInfo!.deviceId,
+      );
       userAttributes = UserAttributes(storage!);
 
       // Initialize user attributes asynchronously
@@ -114,7 +119,8 @@ abstract class MetriqusNative {
 
       _isInitialized = true;
       Metriqus.verboseLog(
-          "🔧 [NATIVE] SDK initialization completed successfully");
+        "🔧 [NATIVE] SDK initialization completed successfully",
+      );
 
       // Process initialization tasks after SDK is marked as initialized
       _processIsFirstLaunch();
@@ -142,7 +148,9 @@ abstract class MetriqusNative {
   /// Abstract methods to be implemented by platform-specific classes
   void readAdid(Function(String) callback);
   void readAttribution(
-      Function(MetriqusAttribution) onReadCallback, Function(String) onError);
+    Function(MetriqusAttribution) onReadCallback,
+    Function(String) onError,
+  );
   void getInstallTime(Function(int) callback);
 
   /// Handle internet connection
@@ -213,27 +221,34 @@ abstract class MetriqusNative {
 
   /// Process session logic
   void _processSession() {
-    DateTime currentTime = DateTime.now().toUtc();
+    DateTime currentTime = MetriqusUtils.timestampSecondsToDateTime(
+      MetriqusUtils.getCurrentUtcTimestampSeconds(),
+    );
 
     try {
       // Check if this is first session by checking lastSessionStartTimeKey exist
-      bool isLastSessionStartTimeSaved =
-          storage!.checkKeyExist(lastSessionStartTimeKey);
+      bool isLastSessionStartTimeSaved = storage!.checkKeyExist(
+        lastSessionStartTimeKey,
+      );
 
       // If LastSessionStartTimeKey already saved, it means this is not first session
       if (isLastSessionStartTimeSaved) {
         // THIS IS NOT FIRST SESSION
-        String lastSessionStartTimeStr =
-            storage!.loadData(lastSessionStartTimeKey);
+        String lastSessionStartTimeStr = storage!.loadData(
+          lastSessionStartTimeKey,
+        );
         DateTime lastSessionStartTime = _parseDate(lastSessionStartTimeStr);
 
         var remoteSettings = getMetriqusRemoteSettings();
 
-        double passedMinutesSinceLastSession =
-            currentTime.difference(lastSessionStartTime).inMinutes.toDouble();
+        double passedMinutesSinceLastSession = currentTime
+            .difference(lastSessionStartTime)
+            .inMinutes
+            .toDouble();
 
         Metriqus.verboseLog(
-            "Passed Minutes Since Last Session: $passedMinutesSinceLastSession");
+          "Passed Minutes Since Last Session: $passedMinutesSinceLastSession",
+        );
 
         if (passedMinutesSinceLastSession >=
             remoteSettings.sessionIntervalMinutes) {
@@ -262,8 +277,10 @@ abstract class MetriqusNative {
       Metriqus.errorLog("An error occurred ProcessSession: $e");
     }
 
-    storage!
-        .saveData(lastSessionStartTimeKey, _convertDateToString(currentTime));
+    storage!.saveData(
+      lastSessionStartTimeKey,
+      _convertDateToString(currentTime),
+    );
   }
 
   /// Process attribution logic
@@ -274,91 +291,117 @@ abstract class MetriqusNative {
       // Cancel attribution if tracking disabled
       if (!isTrackingEnabled) {
         Metriqus.infoLog(
-            "🎯 [ATTRIBUTION] ProcessAttribution canceled: user not allowed tracking");
+          "🎯 [ATTRIBUTION] ProcessAttribution canceled: user not allowed tracking",
+        );
         return;
       }
 
       // Cancel attribution on iOS platform if tracking disabled
       if (metriqusSettings?.iOSUserTrackingDisabled == true) {
         Metriqus.infoLog(
-            "🎯 [ATTRIBUTION] ProcessAttribution canceled: iOS User Tracking Disabled");
+          "🎯 [ATTRIBUTION] ProcessAttribution canceled: iOS User Tracking Disabled",
+        );
         return;
       }
 
-      DateTime currentDate = DateTime.now().toUtc();
+      DateTime currentDate = MetriqusUtils.timestampSecondsToDateTime(
+        MetriqusUtils.getCurrentUtcTimestampSeconds(),
+      );
       Metriqus.verboseLog("🎯 [ATTRIBUTION] Current date: $currentDate");
 
       void sendAttr() {
         Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Starting attribution send process");
-        readAttribution((attribution) {
-          Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Attribution data received, sending package");
-          _packageSender?.sendAttributionPackage(attribution);
+          "🎯 [ATTRIBUTION] Starting attribution send process",
+        );
+        readAttribution(
+          (attribution) {
+            Metriqus.verboseLog(
+              "🎯 [ATTRIBUTION] Attribution data received, sending package",
+            );
+            _packageSender?.sendAttributionPackage(attribution);
 
-          final dateString = _convertDateToString(currentDate);
-          Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Saving attribution date: $dateString");
-          storage!.saveData(lastSendAttributionDateKey, dateString);
-          Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Attribution date saved successfully");
-        }, (error) {
-          Metriqus.errorLog("❌ [ATTRIBUTION] Attribution read error: $error");
-        });
+            final dateString = _convertDateToString(currentDate);
+            Metriqus.verboseLog(
+              "🎯 [ATTRIBUTION] Saving attribution date: $dateString",
+            );
+            storage!.saveData(lastSendAttributionDateKey, dateString);
+            Metriqus.verboseLog(
+              "🎯 [ATTRIBUTION] Attribution date saved successfully",
+            );
+          },
+          (error) {
+            Metriqus.errorLog("❌ [ATTRIBUTION] Attribution read error: $error");
+          },
+        );
       }
 
       getInstallTime((installTime) {
-        DateTime installDate = DateTime.fromMillisecondsSinceEpoch(installTime);
+        DateTime installDate = MetriqusUtils.timestampSecondsToDateTime(
+          installTime,
+        );
         Metriqus.verboseLog("🎯 [ATTRIBUTION] Install date: $installDate");
 
         Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Checking if attribution date key exists: $lastSendAttributionDateKey");
-        bool lastSendAttributionDateExist =
-            storage!.checkKeyExist(lastSendAttributionDateKey);
+          "🎯 [ATTRIBUTION] Checking if attribution date key exists: $lastSendAttributionDateKey",
+        );
+        bool lastSendAttributionDateExist = storage!.checkKeyExist(
+          lastSendAttributionDateKey,
+        );
         Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Key exists: $lastSendAttributionDateExist");
+          "🎯 [ATTRIBUTION] Key exists: $lastSendAttributionDateExist",
+        );
 
         var remoteSettings = getMetriqusRemoteSettings();
         Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Attribution window: ${remoteSettings.attributionCheckWindow} days");
+          "🎯 [ATTRIBUTION] Attribution window: ${remoteSettings.attributionCheckWindow} days",
+        );
 
         int daysSinceInstall = currentDate.difference(installDate).inDays;
         Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Days since install: $daysSinceInstall");
+          "🎯 [ATTRIBUTION] Days since install: $daysSinceInstall",
+        );
 
         if (daysSinceInstall < remoteSettings.attributionCheckWindow) {
           // if it has been less than attribution window days, send attribution
           Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Within attribution window, sending attribution");
+            "🎯 [ATTRIBUTION] Within attribution window, sending attribution",
+          );
           sendAttr();
         } else if (!lastSendAttributionDateExist) {
           // if didn't send any attribution, send it
           Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] No previous attribution sent, sending attribution");
+            "🎯 [ATTRIBUTION] No previous attribution sent, sending attribution",
+          );
           sendAttr();
         } else {
           // if last attribution send date before window and now it passed
           // window, send last one more time
           Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Checking last attribution send date");
-          String lastAttributionDateStr =
-              storage!.loadData(lastSendAttributionDateKey);
+            "🎯 [ATTRIBUTION] Checking last attribution send date",
+          );
+          String lastAttributionDateStr = storage!.loadData(
+            lastSendAttributionDateKey,
+          );
           DateTime lastAttributionDate = _parseDate(lastAttributionDateStr);
 
-          int daysSinceLastAttribution =
-              lastAttributionDate.difference(installDate).inDays;
+          int daysSinceLastAttribution = lastAttributionDate
+              .difference(installDate)
+              .inDays;
           Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Days since last attribution: $daysSinceLastAttribution");
+            "🎯 [ATTRIBUTION] Days since last attribution: $daysSinceLastAttribution",
+          );
 
           if (daysSinceLastAttribution <
                   remoteSettings.attributionCheckWindow &&
               daysSinceInstall > remoteSettings.attributionCheckWindow) {
             Metriqus.verboseLog(
-                "🎯 [ATTRIBUTION] Sending final attribution after window");
+              "🎯 [ATTRIBUTION] Sending final attribution after window",
+            );
             sendAttr();
           } else {
             Metriqus.verboseLog(
-                "🎯 [ATTRIBUTION] Attribution conditions not met, skipping");
+              "🎯 [ATTRIBUTION] Attribution conditions not met, skipping",
+            );
           }
         }
       });
@@ -376,7 +419,13 @@ abstract class MetriqusNative {
       if (existingFirstLaunchTime.isEmpty) {
         _isFirstLaunch = true;
         storage!.saveData(
-            firstLaunchTimeKey, _convertDateToString(DateTime.now().toUtc()));
+          firstLaunchTimeKey,
+          _convertDateToString(
+            MetriqusUtils.timestampSecondsToDateTime(
+              MetriqusUtils.getCurrentUtcTimestampSeconds(),
+            ),
+          ),
+        );
         onFirstLaunch();
       }
     } catch (e) {
@@ -396,7 +445,9 @@ abstract class MetriqusNative {
       return _parseDate(firstLaunchTime);
     }
 
-    return DateTime.now().toUtc();
+    return MetriqusUtils.timestampSecondsToDateTime(
+      MetriqusUtils.getCurrentUtcTimestampSeconds(),
+    );
   }
 
   /// Get Metriqus settings
@@ -416,8 +467,9 @@ abstract class MetriqusNative {
     DateTime geolocationLastFetchedTime = _getUtcStartTime();
 
     // Check if geolocation fetched before
-    String geolocationLastFetchedTimeStr =
-        storage!.loadData(geolocationLastFetchedTimeKey);
+    String geolocationLastFetchedTimeStr = storage!.loadData(
+      geolocationLastFetchedTimeKey,
+    );
     if (geolocationLastFetchedTimeStr.isNotEmpty) {
       // Load and parse last fetched date
       geolocationLastFetchedTime = _parseDate(geolocationLastFetchedTimeStr);
@@ -427,11 +479,14 @@ abstract class MetriqusNative {
 
     bool fetchingSuccessful = true;
 
-    if (DateTime.now().toUtc().difference(geolocationLastFetchedTime).inDays >
+    if (MetriqusUtils.timestampSecondsToDateTime(
+          MetriqusUtils.getCurrentUtcTimestampSeconds(),
+        ).difference(geolocationLastFetchedTime).inDays >
         remoteSettings.geolocationFetchIntervalDays) {
       // it passed {remoteSettings.geolocationFetchIntervalDays} since last fetched geolocation
       Metriqus.verboseLog(
-          "Fetching geolocating. Last Fetched at: ${geolocationLastFetchedTime.toString()}");
+        "Fetching geolocating. Last Fetched at: ${geolocationLastFetchedTime.toString()}",
+      );
 
       var fetchedGeolocation = await IPGeolocation.getGeolocation();
 
@@ -447,7 +502,13 @@ abstract class MetriqusNative {
 
       storage!.saveData(geolocationKey, jsonEncode(info.toJson()));
       storage!.saveData(
-          geolocationLastFetchedTimeKey, _convertDateToString(DateTime.now()));
+        geolocationLastFetchedTimeKey,
+        _convertDateToString(
+          MetriqusUtils.timestampSecondsToDateTime(
+            MetriqusUtils.getCurrentUtcTimestampSeconds(),
+          ),
+        ),
+      );
 
       return info;
     } else {
@@ -460,7 +521,8 @@ abstract class MetriqusNative {
         _geolocation = Geolocation.fromJson(jsonDecode(geolocationJson));
 
         Metriqus.verboseLog(
-            "Geolocation loaded from storage: $geolocationJson");
+          "Geolocation loaded from storage: $geolocationJson",
+        );
 
         return _geolocation;
       }
@@ -481,11 +543,13 @@ abstract class MetriqusNative {
 
     var response = await RequestSender.postAsync(
       "https://rmt.metriqus.com/event/remote-settings",
-      jsonEncode(RemoteSettingRequestParams(
-        platform: _deviceInfo!.platform,
-        clientKey: metriqusSettings!.clientKey,
-        packageName: _deviceInfo!.packageName,
-      ).toJson()),
+      jsonEncode(
+        RemoteSettingRequestParams(
+          platform: _deviceInfo!.platform,
+          clientKey: metriqusSettings!.clientKey,
+          packageName: _deviceInfo!.packageName,
+        ).toJson(),
+      ),
       headers: headers,
     );
 
@@ -515,7 +579,8 @@ abstract class MetriqusNative {
       } else {
         _remoteSettings = MetriqusRemoteSettings();
         Metriqus.infoLog(
-            "Remote Settings couldn't fetched or couldn't loaded from storage, using default");
+          "Remote Settings couldn't fetched or couldn't loaded from storage, using default",
+        );
       }
     }
 

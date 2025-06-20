@@ -60,8 +60,9 @@ class MetriqusUtils {
       });
     } catch (e) {
       // If parsing fails, try manual parsing
-      String query =
-          queryString.startsWith('?') ? queryString.substring(1) : queryString;
+      String query = queryString.startsWith('?')
+          ? queryString.substring(1)
+          : queryString;
       List<String> parameters = query.split('&');
 
       for (String param in parameters) {
@@ -105,9 +106,28 @@ class MetriqusUtils {
     return date.millisecondsSinceEpoch ~/ 1000;
   }
 
+  /// Get current UTC timestamp in seconds
+  /// This is the centralized timestamp function that should be used throughout the SDK
+  static int getCurrentUtcTimestampSeconds() {
+    return DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+  }
+
+  /// Convert DateTime to UTC timestamp in seconds
+  static int dateTimeToUtcTimestampSeconds(DateTime dateTime) {
+    return dateTime.toUtc().millisecondsSinceEpoch ~/ 1000;
+  }
+
+  /// Convert timestamp in seconds to DateTime
+  static DateTime timestampSecondsToDateTime(int timestampSeconds) {
+    return DateTime.fromMillisecondsSinceEpoch(
+      timestampSeconds * 1000,
+      isUtc: true,
+    );
+  }
+
   /// Generate a unique session ID
   static String generateSessionId() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = getCurrentUtcTimestampSeconds();
     final random = (timestamp.hashCode % 100000).toString().padLeft(5, '0');
     return "session_${timestamp}_$random";
   }
@@ -128,8 +148,8 @@ class MetriqusUtils {
 
       final parts = sessionId.split('_');
       if (parts.length >= 2) {
-        final timestamp = int.parse(parts[1]);
-        return DateTime.fromMillisecondsSinceEpoch(timestamp);
+        final timestampSeconds = int.parse(parts[1]);
+        return timestampSecondsToDateTime(timestampSeconds);
       }
     } catch (e) {
       // Return null if parsing fails

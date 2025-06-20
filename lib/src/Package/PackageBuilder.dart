@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import '../MetriqusSettings.dart';
 import '../Utilities/DeviceInfo.dart';
+import '../Utilities/MetriqusUtils.dart';
 import '../Metriqus.dart';
 import '../EventModels/MetriqusInAppRevenue.dart';
 import '../EventModels/Attribution/MetriqusAttribution.dart';
@@ -19,11 +20,12 @@ class PackageBuilder {
   MetriqusSettings? metriqusSettings;
 
   /// Constructor
-  PackageBuilder(MetriqusSettings metriqusSettings, DeviceInfo deviceInfo,
-      DateTime createdAt) {
+  PackageBuilder(MetriqusSettings metriqusSettings, DeviceInfo deviceInfo) {
     this.metriqusSettings = metriqusSettings;
     this.deviceInfo = deviceInfo;
-    this.createdAt = createdAt;
+    this.createdAt = MetriqusUtils.timestampSecondsToDateTime(
+      MetriqusUtils.getCurrentUtcTimestampSeconds(),
+    );
   }
 
   /// Builds session start package
@@ -44,7 +46,8 @@ class PackageBuilder {
 
   /// Builds IAP event package
   Future<Package> buildIAPEventPackage(
-      MetriqusInAppRevenue metriqusEvent) async {
+    MetriqusInAppRevenue metriqusEvent,
+  ) async {
     final package = _getDefaultPackage();
     await _setIAPEventParameters(package, metriqusEvent);
     package.setKey("iap_revenue");
@@ -53,7 +56,8 @@ class PackageBuilder {
 
   /// Builds attribution package
   Future<Package> buildAttributionPackage(
-      MetriqusAttribution metriqusAttribution) async {
+    MetriqusAttribution metriqusAttribution,
+  ) async {
     final package = _getDefaultPackage();
     await _setAttributionParameters(package, metriqusAttribution);
     package.setKey("attribution");
@@ -62,7 +66,8 @@ class PackageBuilder {
 
   /// Builds ad revenue event package
   Future<Package> buildAdRevenueEventPackage(
-      MetriqusAdRevenue adRevenue) async {
+    MetriqusAdRevenue adRevenue,
+  ) async {
     final package = _getDefaultPackage();
     await _setAdRevenueEventParameters(package, adRevenue);
     package.setKey("ad_revenue");
@@ -71,7 +76,8 @@ class PackageBuilder {
 
   /// Builds custom event package
   Future<Package> buildCustomEventPackage(
-      MetriqusCustomEvent customEvent) async {
+    MetriqusCustomEvent customEvent,
+  ) async {
     final package = _getDefaultPackage();
     await _setCustomEventParameters(package, customEvent);
     package.setKey(customEvent.key ?? "custom_event");
@@ -85,7 +91,9 @@ class PackageBuilder {
 
   /// Sets IAP event parameters
   Future<void> _setIAPEventParameters(
-      Package package, MetriqusInAppRevenue event) async {
+    Package package,
+    MetriqusInAppRevenue event,
+  ) async {
     await _addDefaultParameters(package);
 
     final iapParameters = <DynamicParameter>[];
@@ -106,7 +114,9 @@ class PackageBuilder {
 
   /// Sets attribution parameters
   Future<void> _setAttributionParameters(
-      Package package, MetriqusAttribution attribution) async {
+    Package package,
+    MetriqusAttribution attribution,
+  ) async {
     await _addDefaultParameters(package);
 
     final attributionParams = <String, List<DynamicParameter>>{};
@@ -114,14 +124,20 @@ class PackageBuilder {
     if (Platform.isIOS) {
       attributionParams["ios"] = <DynamicParameter>[];
       _addBoolean(
-          attributionParams["ios"]!, "attribution", attribution.attribution);
+        attributionParams["ios"]!,
+        "attribution",
+        attribution.attribution,
+      );
       _addString(attributionParams["ios"]!, "raw", attribution.raw);
     } else if (Platform.isAndroid) {
       attributionParams["android"] = <DynamicParameter>[];
       _addString(attributionParams["android"]!, "source", attribution.source);
       _addString(attributionParams["android"]!, "medium", attribution.medium);
       _addString(
-          attributionParams["android"]!, "campaign", attribution.campaign);
+        attributionParams["android"]!,
+        "campaign",
+        attribution.campaign,
+      );
       _addString(attributionParams["android"]!, "raw", attribution.raw);
     }
 
@@ -130,15 +146,20 @@ class PackageBuilder {
 
   /// Sets ad revenue event parameters
   Future<void> _setAdRevenueEventParameters(
-      Package package, MetriqusAdRevenue event) async {
+    Package package,
+    MetriqusAdRevenue event,
+  ) async {
     await _addDefaultParameters(package);
 
     final publisherParameters = <DynamicParameter>[];
 
     _addString(publisherParameters, "ad_source", event.source);
     if (event.revenue != null) {
-      _addInteger(publisherParameters, "ad_revenue",
-          (event.revenue! * 1000000).toInt());
+      _addInteger(
+        publisherParameters,
+        "ad_revenue",
+        (event.revenue! * 1000000).toInt(),
+      );
     }
     _addString(publisherParameters, "ad_currency", event.currency);
 
@@ -147,7 +168,9 @@ class PackageBuilder {
 
   /// Sets custom event parameters
   Future<void> _setCustomEventParameters(
-      Package package, MetriqusCustomEvent event) async {
+    Package package,
+    MetriqusCustomEvent event,
+  ) async {
     await _addDefaultParameters(package);
     package.parameters = event.getParameters();
   }
@@ -163,7 +186,7 @@ class PackageBuilder {
       package.clientSdk = await Metriqus.getClientSdk();
       // During initialization, get first launch status directly from native
       package.isFirstLaunch = native?.getIsFirstLaunch ?? false;
-      package.eventTimestamp = DateTime.now().millisecondsSinceEpoch;
+      package.eventTimestamp = MetriqusUtils.getCurrentUtcTimestampSeconds();
       // During initialization, get user ID directly from native
       if (native?.uniqueUserIdentifier != null) {
         package.userId = native!.uniqueUserIdentifier!.id;
@@ -175,40 +198,67 @@ class PackageBuilder {
       }
       // During initialization, get first launch time directly from native
       package.userFirstTouchTimestamp =
-          native?.getFirstLaunchTime().millisecondsSinceEpoch ?? 0;
+          MetriqusUtils.dateTimeToUtcTimestampSeconds(
+            native?.getFirstLaunchTime() ?? MetriqusUtils.getUtcStartTime(),
+          );
       package.environment = metriqusSettings?.environment.name ?? 'production';
 
       // Device parameters
       final deviceParameters = <DynamicParameter>[];
       if (deviceInfo != null) {
         _addString(
-            deviceParameters, "flutter_version", deviceInfo!.flutterVersion);
+          deviceParameters,
+          "flutter_version",
+          deviceInfo!.flutterVersion,
+        );
         _addString(deviceParameters, "type", deviceInfo!.deviceType);
         _addString(deviceParameters, "name", deviceInfo!.deviceName);
         _addString(deviceParameters, "model", deviceInfo!.deviceModel);
-        _addString(deviceParameters, "graphics_device_name",
-            deviceInfo!.graphicsDeviceName);
+        _addString(
+          deviceParameters,
+          "graphics_device_name",
+          deviceInfo!.graphicsDeviceName,
+        );
         _addString(deviceParameters, "os_name", deviceInfo!.osName);
-        _addString(deviceParameters, "system_memory_size",
-            deviceInfo!.systemMemorySize.toString());
-        _addString(deviceParameters, "graphics_memory_size",
-            deviceInfo!.graphicsMemorySize.toString());
+        _addString(
+          deviceParameters,
+          "system_memory_size",
+          deviceInfo!.systemMemorySize.toString(),
+        );
+        _addString(
+          deviceParameters,
+          "graphics_memory_size",
+          deviceInfo!.graphicsMemorySize.toString(),
+        );
         _addString(deviceParameters, "language", deviceInfo!.language);
         _addString(deviceParameters, "country", deviceInfo!.country);
         _addString(
-            deviceParameters, "screen_dpi", deviceInfo!.screenDpi.toString());
-        _addString(deviceParameters, "screen_width",
-            deviceInfo!.screenWidth.toString());
-        _addString(deviceParameters, "screen_height",
-            deviceInfo!.screenHeight.toString());
+          deviceParameters,
+          "screen_dpi",
+          deviceInfo!.screenDpi.toString(),
+        );
+        _addString(
+          deviceParameters,
+          "screen_width",
+          deviceInfo!.screenWidth.toString(),
+        );
+        _addString(
+          deviceParameters,
+          "screen_height",
+          deviceInfo!.screenHeight.toString(),
+        );
         _addString(deviceParameters, "id", deviceInfo!.deviceId);
         _addString(deviceParameters, "ad_id", deviceInfo!.adId);
-        _addString(deviceParameters, "tracking_enabled",
-            deviceInfo!.trackingEnabled.toString().toUpperCase());
+        _addString(
+          deviceParameters,
+          "tracking_enabled",
+          deviceInfo!.trackingEnabled.toString().toUpperCase(),
+        );
 
         // Debug log
         Metriqus.verboseLog(
-            '🔍 PACKAGE DEBUG: adId="${deviceInfo!.adId}", trackingEnabled=${deviceInfo!.trackingEnabled}');
+          '🔍 PACKAGE DEBUG: adId="${deviceInfo!.adId}", trackingEnabled=${deviceInfo!.trackingEnabled}',
+        );
       }
       package.device = deviceParameters;
 
@@ -216,8 +266,10 @@ class PackageBuilder {
       final packageInfo = await PackageInfo.fromPlatform();
 
       // App info
-      package.appInfo =
-          AppInfoPackage(packageInfo.packageName, packageInfo.version);
+      package.appInfo = AppInfoPackage(
+        packageInfo.packageName,
+        packageInfo.version,
+      );
 
       // Geolocation parameters - get directly from native during initialization
       final geolocation = native?.getGeolocation();
@@ -225,11 +277,17 @@ class PackageBuilder {
         final geolocationParameters = <DynamicParameter>[];
         _addString(geolocationParameters, "country", geolocation.country);
         _addString(
-            geolocationParameters, "country_code", geolocation.countryCode);
+          geolocationParameters,
+          "country_code",
+          geolocation.countryCode,
+        );
         _addString(geolocationParameters, "city", geolocation.city);
         _addString(geolocationParameters, "region", geolocation.region);
         _addString(
-            geolocationParameters, "region_name", geolocation.regionName);
+          geolocationParameters,
+          "region_name",
+          geolocation.regionName,
+        );
         package.geolocation = geolocationParameters;
       }
 
@@ -253,7 +311,7 @@ class PackageBuilder {
     } catch (e) {
       // Fallback values if something goes wrong
       package.eventId = _generateEventId();
-      package.eventTimestamp = DateTime.now().millisecondsSinceEpoch;
+      package.eventTimestamp = MetriqusUtils.getCurrentUtcTimestampSeconds();
       package.environment = metriqusSettings?.environment.name ?? 'production';
     }
   }
@@ -268,7 +326,8 @@ class PackageBuilder {
   void _addString(List<DynamicParameter> list, String key, String? value) {
     if (key == "ad_id") {
       Metriqus.verboseLog(
-          '🔍 _addString DEBUG: key="$key", value="$value", isNotEmpty=${value?.isNotEmpty}');
+        '🔍 _addString DEBUG: key="$key", value="$value", isNotEmpty=${value?.isNotEmpty}',
+      );
     }
     if (value != null && value.isNotEmpty) {
       list.add(DynamicParameter(key, value));
@@ -364,19 +423,15 @@ class Package {
       'appInfo': appInfo?.toJson(),
       'item': item?.map((param) => param.toJson()).toList(),
       'publisher': publisher?.map((param) => param.toJson()).toList(),
-      'attribution': attribution?.map((key, value) =>
-          MapEntry(key, value.map((param) => param.toJson()).toList())),
+      'attribution': attribution?.map(
+        (key, value) =>
+            MapEntry(key, value.map((param) => param.toJson()).toList()),
+      ),
       'parameters': parameters
-          ?.map((param) => {
-                'name': param.name,
-                'value': param.value,
-              })
+          ?.map((param) => {'name': param.name, 'value': param.value})
           .toList(),
       'userAttributes': userAttributes
-          ?.map((param) => {
-                'name': param.name,
-                'value': param.value,
-              })
+          ?.map((param) => {'name': param.name, 'value': param.value})
           .toList(),
     };
   }

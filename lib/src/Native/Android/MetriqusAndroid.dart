@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/services.dart';
 import '../MetriqusNative.dart';
 import '../../MetriqusSettings.dart';
+import '../../Utilities/MetriqusUtils.dart';
 import '../../EventModels/Attribution/MetriqusAttribution.dart';
 import '../../EventModels/Attribution/MetaAttributionUtilities.dart';
 import '../../Metriqus.dart';
@@ -51,16 +52,19 @@ class MetriqusAndroid extends MetriqusNative {
 
         if (success && advertisingId.isNotEmpty) {
           Metriqus.verboseLog(
-              "✅ Android Advertising ID obtained: $advertisingId");
+            "✅ Android Advertising ID obtained: $advertisingId",
+          );
           adId = advertisingId;
         } else {
           Metriqus.verboseLog(
-              "❌ Android Advertising ID not available or tracking disabled");
+            "❌ Android Advertising ID not available or tracking disabled",
+          );
           adId = "";
         }
       } else {
         Metriqus.errorLog(
-            "❌ Failed to get Android Advertising ID response from native");
+          "❌ Failed to get Android Advertising ID response from native",
+        );
         adId = "";
       }
     } catch (e) {
@@ -90,16 +94,19 @@ class MetriqusAndroid extends MetriqusNative {
 
         if (success && advertisingId.isNotEmpty) {
           Metriqus.verboseLog(
-              "✅ Android Advertising ID obtained: $advertisingId");
+            "✅ Android Advertising ID obtained: $advertisingId",
+          );
           callback(advertisingId);
         } else {
           Metriqus.verboseLog(
-              "❌ Android Advertising ID not available or tracking disabled");
+            "❌ Android Advertising ID not available or tracking disabled",
+          );
           callback("");
         }
       } else {
         Metriqus.errorLog(
-            "❌ Failed to get Android Advertising ID response from native");
+          "❌ Failed to get Android Advertising ID response from native",
+        );
         callback("");
       }
     } catch (e) {
@@ -115,7 +122,8 @@ class MetriqusAndroid extends MetriqusNative {
   ) async {
     try {
       Metriqus.verboseLog(
-          "🔍 ReadAttribution Android - Starting attribution read");
+        "🔍 ReadAttribution Android - Starting attribution read",
+      );
 
       // Get attribution data via native Android code
       final platform = MethodChannel('metriqus_flutter_sdk/device_info');
@@ -127,7 +135,8 @@ class MetriqusAndroid extends MetriqusNative {
         if (success) {
           final referrerUrl = result['referrerUrl'] ?? '';
           Metriqus.verboseLog(
-              "✅ Android attribution referrer URL obtained: $referrerUrl");
+            "✅ Android attribution referrer URL obtained: $referrerUrl",
+          );
 
           // Parse referrer URL into MetriqusAttribution
           final attribution = MetriqusAttribution.fromReferrerUrl(referrerUrl);
@@ -138,17 +147,20 @@ class MetriqusAndroid extends MetriqusNative {
 
             final decryptedReferrerUrl =
                 await MetaAttributionUtilities.decryptMetaUtm(
-                    attribution.content);
+                  attribution.content,
+                );
 
             if (decryptedReferrerUrl != null &&
                 decryptedReferrerUrl.isNotEmpty) {
               Metriqus.verboseLog("✅ Meta UTM decrypted successfully");
-              final metaAttribution =
-                  MetriqusAttribution.fromReferrerUrl(decryptedReferrerUrl);
+              final metaAttribution = MetriqusAttribution.fromReferrerUrl(
+                decryptedReferrerUrl,
+              );
               onReadCallback(metaAttribution);
             } else {
               Metriqus.verboseLog(
-                  "❌ Meta UTM decryption failed, using original attribution");
+                "❌ Meta UTM decryption failed, using original attribution",
+              );
               onReadCallback(attribution);
             }
           } else {
@@ -173,46 +185,57 @@ class MetriqusAndroid extends MetriqusNative {
   void getInstallTime(Function(int) callback) async {
     try {
       // Try to get from storage first
-      storage?.loadDataAsync(installTimeKey).then((storedTime) async {
-        if (storedTime.isNotEmpty) {
-          final installTime =
-              int.tryParse(storedTime) ?? DateTime.now().millisecondsSinceEpoch;
-          Metriqus.verboseLog(
-              "Android install time from storage: $installTime");
-          callback(installTime);
-          return;
-        }
+      storage
+          ?.loadDataAsync(installTimeKey)
+          .then((storedTime) async {
+            if (storedTime.isNotEmpty) {
+              final installTime =
+                  int.tryParse(storedTime) ??
+                  MetriqusUtils.getCurrentUtcTimestampSeconds();
+              Metriqus.verboseLog(
+                "Android install time from storage: $installTime",
+              );
+              callback(installTime);
+              return;
+            }
 
-        // Get install time via native Android code
-        final platform = MethodChannel('metriqus_flutter_sdk/device_info');
-        final result = await platform.invokeMethod('getInstallTime');
+            // Get install time via native Android code
+            final platform = MethodChannel('metriqus_flutter_sdk/device_info');
+            final result = await platform.invokeMethod('getInstallTime');
 
-        if (result != null && result is Map) {
-          final success = result['success'] ?? false;
-          final installTime =
-              result['installTime'] ?? DateTime.now().millisecondsSinceEpoch;
+            if (result != null && result is Map) {
+              final success = result['success'] ?? false;
+              final installTime =
+                  result['installTime'] ??
+                  MetriqusUtils.getCurrentUtcTimestampSeconds();
 
-          if (success) {
-            Metriqus.verboseLog(
-                "✅ Android install time obtained: $installTime");
-            callback(installTime);
-          } else {
-            Metriqus.verboseLog(
-                "❌ Failed to get Android install time, using current time");
-            callback(DateTime.now().millisecondsSinceEpoch);
-          }
-        } else {
-          Metriqus.verboseLog(
-              "❌ Invalid Android install time response, using current time");
-          callback(DateTime.now().millisecondsSinceEpoch);
-        }
-      }).catchError((error) {
-        Metriqus.errorLog("Error reading install time from storage: $error");
-        callback(DateTime.now().millisecondsSinceEpoch);
-      });
+              if (success) {
+                Metriqus.verboseLog(
+                  "✅ Android install time obtained: $installTime",
+                );
+                callback(installTime);
+              } else {
+                Metriqus.verboseLog(
+                  "❌ Failed to get Android install time, using current time",
+                );
+                callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+              }
+            } else {
+              Metriqus.verboseLog(
+                "❌ Invalid Android install time response, using current time",
+              );
+              callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+            }
+          })
+          .catchError((error) {
+            Metriqus.errorLog(
+              "Error reading install time from storage: $error",
+            );
+            callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+          });
     } catch (e) {
       Metriqus.errorLog("Error getting Android install time: $e");
-      callback(DateTime.now().millisecondsSinceEpoch);
+      callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
     }
   }
 
@@ -230,7 +253,7 @@ class MetriqusAndroid extends MetriqusNative {
   /// Set install time in storage
   void _setInstallTime() {
     try {
-      final installTime = DateTime.now().toUtc().millisecondsSinceEpoch;
+      final installTime = MetriqusUtils.getCurrentUtcTimestampSeconds();
       storage?.saveData(installTimeKey, installTime.toString());
       Metriqus.verboseLog("Android install time set: $installTime");
     } catch (e) {

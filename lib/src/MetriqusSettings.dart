@@ -3,10 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Metriqus.dart';
 
 /// Environment enumeration for Metriqus
-enum Environment {
-  development,
-  production,
-}
+enum Environment { sandbox, production }
 
 /// Log level enumeration for Metriqus logging
 enum LogLevel {
@@ -22,10 +19,6 @@ class MetriqusSettings {
   final String clientSecret;
   final Environment environment;
   final LogLevel logLevel;
-  final bool enableAnalytics;
-  final bool enableCrashReporting;
-  final int sessionTimeoutMinutes;
-  final String? customUserId;
   final bool iOSUserTrackingDisabled;
 
   const MetriqusSettings({
@@ -33,10 +26,6 @@ class MetriqusSettings {
     required this.clientSecret,
     this.environment = Environment.production,
     this.logLevel = LogLevel.errorsOnly,
-    this.enableAnalytics = true,
-    this.enableCrashReporting = true,
-    this.sessionTimeoutMinutes = 30,
-    this.customUserId,
     this.iOSUserTrackingDisabled = false,
   });
 
@@ -47,10 +36,6 @@ class MetriqusSettings {
       'clientSecret': clientSecret,
       'environment': environment.name,
       'logLevel': logLevel.name,
-      'enableAnalytics': enableAnalytics,
-      'enableCrashReporting': enableCrashReporting,
-      'sessionTimeoutMinutes': sessionTimeoutMinutes,
-      'customUserId': customUserId,
     };
   }
 
@@ -67,10 +52,6 @@ class MetriqusSettings {
         (e) => e.name == json['logLevel'],
         orElse: () => LogLevel.errorsOnly,
       ),
-      enableAnalytics: json['enableAnalytics'] ?? true,
-      enableCrashReporting: json['enableCrashReporting'] ?? true,
-      sessionTimeoutMinutes: json['sessionTimeoutMinutes'] ?? 30,
-      customUserId: json['customUserId'],
     );
   }
 
@@ -80,21 +61,12 @@ class MetriqusSettings {
     String? clientSecret,
     Environment? environment,
     LogLevel? logLevel,
-    bool? enableAnalytics,
-    bool? enableCrashReporting,
-    int? sessionTimeoutMinutes,
-    String? customUserId,
   }) {
     return MetriqusSettings(
       clientKey: clientKey ?? this.clientKey,
       clientSecret: clientSecret ?? this.clientSecret,
       environment: environment ?? this.environment,
       logLevel: logLevel ?? this.logLevel,
-      enableAnalytics: enableAnalytics ?? this.enableAnalytics,
-      enableCrashReporting: enableCrashReporting ?? this.enableCrashReporting,
-      sessionTimeoutMinutes:
-          sessionTimeoutMinutes ?? this.sessionTimeoutMinutes,
-      customUserId: customUserId ?? this.customUserId,
     );
   }
 

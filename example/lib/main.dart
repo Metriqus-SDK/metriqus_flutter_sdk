@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:metriqus_flutter_sdk/metriqus_flutter_sdk.dart';
+import 'package:metriqus_flutter_sdk/src/Utilities/MetriqusUtils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -8,11 +9,8 @@ void main() async {
   final settings = MetriqusSettings(
     clientKey: 'bwwknjmjelo2klmu',
     clientSecret: 'bIrlx2M61pUZ7PzZ0SXTqnFAtIqBT7wM',
-    environment: Environment.development,
+    environment: Environment.sandbox,
     logLevel: LogLevel.verbose,
-    enableAnalytics: true,
-    enableCrashReporting: true,
-    sessionTimeoutMinutes: 30,
   );
 
   await Metriqus.initSdk(settings);
@@ -71,7 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
     iapRevenue.name = 'Premium Upgrade';
     iapRevenue.category = 'upgrade';
     iapRevenue.quantity = 1;
-    iapRevenue.setTransactionId('txn_${DateTime.now().millisecondsSinceEpoch}');
+    iapRevenue.setTransactionId(
+        'txn_${MetriqusUtils.getCurrentUtcTimestampSeconds()}');
     Metriqus.trackIAPEvent(iapRevenue);
     _updateStatus('✅ IAP Event Tracked: Premium Upgrade \$4.99 USD');
   }
@@ -83,8 +82,8 @@ class _MyHomePageState extends State<MyHomePage> {
     customEvent
         .addParameter(TypedParameter.string('button_name', 'play_button'));
     customEvent.addParameter(TypedParameter.string('screen', 'main_menu'));
-    customEvent.addParameter(
-        TypedParameter.int('timestamp', DateTime.now().millisecondsSinceEpoch));
+    customEvent.addParameter(TypedParameter.int(
+        'timestamp', MetriqusUtils.getCurrentUtcTimestampSeconds()));
     customEvent.addParameter(TypedParameter.int('user_level', 5));
     Metriqus.trackCustomEvent(customEvent);
     _updateStatus('✅ Custom Event Tracked: button_clicked with 4 parameters');
@@ -212,8 +211,11 @@ class _MyHomePageState extends State<MyHomePage> {
     Metriqus.setUserAttribute(
         TypedParameter.string('favorite_character', 'mage'));
     Metriqus.setUserAttribute(TypedParameter.string('guild_id', 'guild_123'));
-    Metriqus.setUserAttribute(
-        TypedParameter.string('last_login', DateTime.now().toIso8601String()));
+    Metriqus.setUserAttribute(TypedParameter.string(
+        'last_login',
+        MetriqusUtils.timestampSecondsToDateTime(
+          MetriqusUtils.getCurrentUtcTimestampSeconds(),
+        ).toIso8601String()));
     _updateStatus('✅ User Attributes Set: 7 attributes (Premium Level 25)');
   }
 

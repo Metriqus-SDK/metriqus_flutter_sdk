@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'MetriqusSettings.dart';
+import 'Utilities/MetriqusUtils.dart';
 import 'Native/MetriqusNative.dart';
 import 'Native/iOS/MetriqusIOS.dart';
 import 'Native/Android/MetriqusAndroid.dart';
@@ -183,13 +184,16 @@ class Metriqus {
 
     eventLog(customEvent.key ?? 'custom_event', null);
     infoLog(
-        "Custom event '${customEvent.key ?? 'custom_event'}' created and sent to native layer");
+      "Custom event '${customEvent.key ?? 'custom_event'}' created and sent to native layer",
+    );
     _native!.trackCustomEvent(customEvent);
   }
 
   /// Track custom event with string and parameters (backward compatibility)
-  static void trackCustomEventWithParameters(String eventName,
-      {Map<String, dynamic>? parameters}) {
+  static void trackCustomEventWithParameters(
+    String eventName, {
+    Map<String, dynamic>? parameters,
+  }) {
     if (!_checkInitialization()) return;
 
     var customEvent = MetriqusCustomEvent(eventName);
@@ -205,8 +209,9 @@ class Metriqus {
         } else if (value is bool) {
           customEvent.addParameter(TypedParameter.bool(key, value));
         } else {
-          customEvent
-              .addParameter(TypedParameter.string(key, value.toString()));
+          customEvent.addParameter(
+            TypedParameter.string(key, value.toString()),
+          );
         }
       });
     }
@@ -222,7 +227,8 @@ class Metriqus {
 
     eventLog(levelEvent.key ?? 'level_start', null);
     infoLog(
-        "Level started event '${levelEvent.key ?? 'level_start'}' created and sent to native layer");
+      "Level started event '${levelEvent.key ?? 'level_start'}' created and sent to native layer",
+    );
     _native!.trackCustomEvent(levelEvent);
   }
 
@@ -232,7 +238,8 @@ class Metriqus {
 
     eventLog(levelEvent.key ?? 'level_completed', null);
     infoLog(
-        "Level completed event '${levelEvent.key ?? 'level_completed'}' created and sent to native layer");
+      "Level completed event '${levelEvent.key ?? 'level_completed'}' created and sent to native layer",
+    );
     _native!.trackCustomEvent(levelEvent);
   }
 
@@ -242,7 +249,8 @@ class Metriqus {
 
     eventLog(itemEvent.key ?? 'item_used', null);
     infoLog(
-        "Item used event '${itemEvent.key ?? 'item_used'}' created and sent to native layer");
+      "Item used event '${itemEvent.key ?? 'item_used'}' created and sent to native layer",
+    );
     _native!.trackCustomEvent(itemEvent);
   }
 
@@ -252,7 +260,8 @@ class Metriqus {
 
     eventLog(campaignEvent.key ?? 'campaign_details', null);
     infoLog(
-        "Campaign action event '${campaignEvent.key ?? 'campaign_details'}' created and sent to native layer");
+      "Campaign action event '${campaignEvent.key ?? 'campaign_details'}' created and sent to native layer",
+    );
     _native!.trackCustomEvent(campaignEvent);
   }
 
@@ -281,7 +290,8 @@ class Metriqus {
     if (!_checkInitialization()) return;
 
     verboseLog(
-        "👤 Setting user attribute: ${parameter.name} = ${parameter.value}");
+      "👤 Setting user attribute: ${parameter.name} = ${parameter.value}",
+    );
     _native!.setUserAttribute(parameter);
   }
 
@@ -481,7 +491,9 @@ class Metriqus {
 
     if (!shouldLog) return;
 
-    final timestamp = DateTime.now().toIso8601String();
+    final timestamp = MetriqusUtils.timestampSecondsToDateTime(
+      MetriqusUtils.getCurrentUtcTimestampSeconds(),
+    ).toIso8601String();
     String logLevelStr = level.toString().split('.').last.toUpperCase();
     String logMessage = "[$timestamp][METRIQUS][$logLevelStr] $message";
     print(logMessage);
@@ -505,21 +517,28 @@ class Metriqus {
 
   /// Event logging for tracking events
   static void eventLog(String eventName, Map<String, dynamic>? parameters) {
-    String paramStr =
-        parameters != null ? " | Parameters: ${parameters.toString()}" : "";
+    String paramStr = parameters != null
+        ? " | Parameters: ${parameters.toString()}"
+        : "";
     debugLog("📊 EVENT: $eventName$paramStr", LogLevel.debug);
   }
 
   /// EventQueue logging for queue operations
   static void eventQueueLog(String operation, {Map<String, dynamic>? details}) {
-    String detailStr =
-        details != null ? " | Details: ${details.toString()}" : "";
+    String detailStr = details != null
+        ? " | Details: ${details.toString()}"
+        : "";
     debugLog("📦 EVENTQUEUE: $operation$detailStr", LogLevel.verbose);
   }
 
   /// Network logging for HTTP requests/responses
-  static void networkLog(String operation, String url,
-      {String? requestBody, String? responseBody, int? statusCode}) {
+  static void networkLog(
+    String operation,
+    String url, {
+    String? requestBody,
+    String? responseBody,
+    int? statusCode,
+  }) {
     String logMessage = "🌐 NETWORK: $operation | URL: $url";
     if (statusCode != null) logMessage += " | Status: $statusCode";
     if (requestBody != null) logMessage += " | Request: $requestBody";

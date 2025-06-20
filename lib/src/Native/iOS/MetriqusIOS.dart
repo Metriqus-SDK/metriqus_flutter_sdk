@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../MetriqusNative.dart';
 import '../../MetriqusSettings.dart';
+import '../../Utilities/MetriqusUtils.dart';
 import '../../EventModels/Attribution/MetriqusAttribution.dart';
 import '../../ThirdParty/SimpleJSON.dart';
 
@@ -96,7 +97,8 @@ class MetriqusIOS extends MetriqusNative {
         if (success) {
           final token = result['token'] ?? '';
           print(
-              "✅ Attribution token obtained: ${token.substring(0, min<int>(50, token.length))}...");
+            "✅ Attribution token obtained: ${token.substring(0, min<int>(50, token.length))}...",
+          );
 
           // Request attribution data from Apple with token
           final attribution = await _requestAttributionData(token);
@@ -126,25 +128,29 @@ class MetriqusIOS extends MetriqusNative {
   void getInstallTime(Function(int) callback) {
     try {
       // Try to get from storage first
-      storage?.loadDataAsync(installTimeKey).then((storedTime) {
-        if (storedTime.isNotEmpty) {
-          final installTime =
-              int.tryParse(storedTime) ?? DateTime.now().millisecondsSinceEpoch;
-          callback(installTime);
-          return;
-        }
+      storage
+          ?.loadDataAsync(installTimeKey)
+          .then((storedTime) {
+            if (storedTime.isNotEmpty) {
+              final installTime =
+                  int.tryParse(storedTime) ??
+                  MetriqusUtils.getCurrentUtcTimestampSeconds();
+              callback(installTime);
+              return;
+            }
 
-        // If not in storage, use current time as fallback
-        final installTime = DateTime.now().millisecondsSinceEpoch;
-        print("GetInstallTime: $installTime");
-        callback(installTime);
-      }).catchError((error) {
-        print("Error reading install time from storage: $error");
-        callback(DateTime.now().millisecondsSinceEpoch);
-      });
+            // If not in storage, use current time as fallback
+            final installTime = MetriqusUtils.getCurrentUtcTimestampSeconds();
+            print("GetInstallTime: $installTime");
+            callback(installTime);
+          })
+          .catchError((error) {
+            print("Error reading install time from storage: $error");
+            callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+          });
     } catch (e) {
       print("Error getting iOS install time: $e");
-      callback(DateTime.now().millisecondsSinceEpoch);
+      callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
     }
   }
 
@@ -201,9 +207,7 @@ class MetriqusIOS extends MetriqusNative {
         // HTTP POST request to Apple Search Ads API
         final response = await http.post(
           Uri.parse('https://api-adservices.apple.com/api/v1/'),
-          headers: {
-            'Content-Type': 'text/plain',
-          },
+          headers: {'Content-Type': 'text/plain'},
           body: token,
         );
 
@@ -243,14 +247,16 @@ class MetriqusIOS extends MetriqusNative {
           print("⚠️ 404 Not Found. Retrying...");
           if (attempts < 3) {
             await Future.delayed(
-                Duration(seconds: 5)); // 5 sec between every try
+              Duration(seconds: 5),
+            ); // 5 sec between every try
           }
         } else if (response.statusCode == 400) {
           print("❌ Attribution Status code 400. The token is invalid.");
           break;
         } else if (response.statusCode == 500) {
           print(
-              "❌ Attribution Status code 500. Apple Search Ads server is temporarily down or unreachable.");
+            "❌ Attribution Status code 500. Apple Search Ads server is temporarily down or unreachable.",
+          );
           break;
         } else {
           print("❌ Error: ${response.statusCode} - ${response.reasonPhrase}");
@@ -264,7 +270,8 @@ class MetriqusIOS extends MetriqusNative {
 
     if (!requestSuccessful) {
       print(
-          "❌ Attribution Request failed to get a successful response after multiple attempts.");
+        "❌ Attribution Request failed to get a successful response after multiple attempts.",
+      );
     }
 
     // Return empty attribution on failure
@@ -276,7 +283,7 @@ class MetriqusIOS extends MetriqusNative {
   /// Set install time in storage
   void _setInstallTime() {
     try {
-      final installTime = DateTime.now().toUtc().millisecondsSinceEpoch;
+      final installTime = MetriqusUtils.getCurrentUtcTimestampSeconds();
       storage?.saveData(installTimeKey, installTime.toString());
     } catch (e) {
       print("Error setting install time: $e");
