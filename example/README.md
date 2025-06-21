@@ -1,19 +1,27 @@
-# Metriqus SDK for Flutter
+# Metriqus Flutter SDK Example
 
-This is the Metriqus SDK for Flutter. Metriqus is a data analytic platform for web and mobile.
+This is a comprehensive example application for the Metriqus Flutter SDK. Metriqus is a data analytics platform for web and mobile.
 
-## Compatibility
+## 🚀 Features
 
-- This SDK supports iOS 12 or later and Android API level 21 (Lollipop) or later.
-- The SDK is compatible with Flutter 3.0.0 or later.
+- ✅ **Complete Event Tracking**: Custom events, level progression, item usage
+- ✅ **Revenue Tracking**: IAP events, Ad revenue (AdMob, AppLovin)
+- ✅ **User Management**: User attributes, device info
+- ✅ **SDK Control**: Initialization, settings, debug
+- ✅ **Lifecycle Management**: App state tracking
+- ✅ **Real-time Logs**: SDK event monitoring
 
-## Installation
+## 📋 Requirements
 
-To install the Metriqus SDK, choose one of the following methods.
+- **iOS**: 12.0 or later
+- **Android**: API level 21 (Lollipop) or later  
+- **Flutter**: 3.0.0 or later
 
-### 1. Install via pub.dev
+## 📦 Installation
 
-To use the Metriqus SDK in your Flutter app, add it to your `pubspec.yaml`:
+### Method 1: Install from pub.dev
+
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -25,9 +33,7 @@ Then run:
 flutter pub get
 ```
 
-### 2. Install from Git Repository
-
-To install the Metriqus SDK from Git repository, add this to your `pubspec.yaml`:
+### Method 2: Install from Git Repository
 
 ```yaml
 dependencies:
@@ -36,9 +42,9 @@ dependencies:
       url: https://github.com/Metriqus-SDK/flutter_sdk.git
 ```
 
-## Integrate the SDK
+## 🔧 SDK Integration
 
-The Metriqus SDK initialization is handled in your `main.dart` file. To set up the Metriqus SDK:
+### Basic Setup
 
 ```dart
 import 'package:metriqus_flutter_sdk/metriqus_flutter_sdk.dart';
@@ -46,330 +52,333 @@ import 'package:metriqus_flutter_sdk/metriqus_flutter_sdk.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  final settings = MetriqusSettings();
-  settings.clientKey = 'your_client_key';        // Check your dashboard for instructions
-  settings.clientSecret = 'your_client_secret';  // Check your dashboard for instructions
-  settings.environment = MetriqusEnvironment.sandbox; // Choose environment
-  settings.logLevel = LogLevel.verbose;           // Control log output
-  
-  await Metriqus.initSdk(settings);
-  
+  // Setup SDK listeners
+  Metriqus.onLog.listen((logMessage) {
+    print('🔵 Metriqus Log: $logMessage');
+  });
+
+  Metriqus.onSdkInitialize.listen((isInitialized) {
+    print('🔧 SDK Initialization: ${isInitialized ? 'SUCCESS' : 'FAILED'}');
+  });
+
+  // Initialize SDK
+  final settings = MetriqusSettings(
+    clientKey: 'your_client_key',
+    clientSecret: 'your_client_secret',
+    environment: Environment.sandbox,
+    logLevel: LogLevel.verbose,
+  );
+
+  Metriqus.initSdk(settings);
   runApp(MyApp());
 }
 ```
 
-To set up the Metriqus SDK, enter the following information:
-
-- **Client Key**: Check your dashboard for instructions to find your client key.
-- **Client Secret**: Check your dashboard for instructions to find your client secret.
-- **Environment**:
-  - Choose `MetriqusEnvironment.sandbox` if you are testing your app and want to send test data. You need to enable sandbox mode in the dashboard to see test data.
-  - Choose `MetriqusEnvironment.production` when you have finished testing and are ready to release your app.
-- **Log Level**: This controls what logs you receive.
-
-The Metriqus SDK starts automatically when `initSdk()` is called. You can also initialize manually by calling:
+### App Lifecycle Management
 
 ```dart
-Metriqus.initSdk(metriqusSettings);
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Metriqus.onResume();
+        break;
+      case AppLifecycleState.paused:
+        Metriqus.onPause();
+        break;
+      case AppLifecycleState.detached:
+        Metriqus.onQuit();
+        break;
+    }
+  }
+}
 ```
 
-## Metriqus SDK Tracking API
+## 📊 Event Tracking
 
-The following functions allow you to track user events, ad revenue, and other analytics-related actions within your Flutter project.
-
-### Event Tracking Functions
-
-#### `trackIAPEvent(MetriqusInAppRevenue metriqusEvent)`
-Tracks in-app purchase (IAP) events.
+### In-App Purchase Events
 
 ```dart
-final iapRevenue = MetriqusInAppRevenue.withRevenue(4.99, 'USD');
-iapRevenue.productId = 'premium_upgrade';
-iapRevenue.setTransactionId('txn_12345');
-Metriqus.trackIAPEvent(iapRevenue);
+void trackIAPEvent() {
+  final iapRevenue = MetriqusInAppRevenue.withRevenue(4.99, 'USD');
+  iapRevenue.brand = 'metriqus';
+  iapRevenue.variant = 'premium';
+  iapRevenue.productId = 'premium_upgrade';
+  iapRevenue.name = 'Premium Upgrade';
+  iapRevenue.category = 'upgrade';
+  iapRevenue.category2 = 'upgrade';
+  iapRevenue.category3 = 'upgrade';
+  iapRevenue.category4 = 'upgrade';
+  iapRevenue.category5 = 'upgrade';
+  iapRevenue.price = 4.99;
+  iapRevenue.quantity = 1;
+  iapRevenue.refund = 0;
+  iapRevenue.coupon = 'TEST2025';
+  iapRevenue.affiliation = 'metriqus';
+  iapRevenue.locationId = 'location_123';
+  iapRevenue.listId = 'list_123';
+  iapRevenue.listName = 'list_123';
+  iapRevenue.listIndex = 1;
+  iapRevenue.promotionId = 'promo_123';
+  iapRevenue.promotionName = 'promo_123';
+  iapRevenue.creativeName = 'creative_123';
+  iapRevenue.creativeSlot = 'slot_123';
+  
+  // Item parameters
+  iapRevenue.itemParams = [
+    TypedParameter.string('test', 'test'),
+    TypedParameter.bool('test', true),
+    TypedParameter.int('test', 1),
+    TypedParameter.double('test', 1.0),
+  ];
+
+  iapRevenue.setTransactionId('txn_${MetriqusUtils.getCurrentUtcTimestampSeconds()}');
+  Metriqus.trackIAPEvent(iapRevenue);
+}
 ```
 
-#### `trackCustomEvent(String eventName, {Map<String, dynamic>? parameters})`
-Tracks custom events with optional parameters.
+### Custom Events
 
 ```dart
-Metriqus.trackCustomEvent('button_clicked', parameters: {
-  'button_name': 'play_button',
-  'screen': 'main_menu',
-});
+void trackCustomEvent() {
+  final customEvent = MetriqusCustomEvent('button_clicked');
+  customEvent.addParameter(TypedParameter.string('button_name', 'play_button'));
+  customEvent.addParameter(TypedParameter.string('screen', 'main_menu'));
+  customEvent.addParameter(TypedParameter.int('timestamp', MetriqusUtils.getCurrentUtcTimestampSeconds()));
+  customEvent.addParameter(TypedParameter.int('user_level', 5));
+  customEvent.addParameter(TypedParameter.string('test', 'test'));
+  customEvent.addParameter(TypedParameter.bool('test', true));
+  customEvent.addParameter(TypedParameter.int('test', 1));
+  customEvent.addParameter(TypedParameter.double('test', 1.0));
+  
+  Metriqus.trackCustomEvent(customEvent);
+}
 ```
 
-#### `trackLevelStarted(MetriqusLevelStartedEvent levelEvent)`
-Tracks when a level is started.
+### Level Progression
 
 ```dart
-final levelStartEvent = MetriqusLevelStartedEvent();
-levelStartEvent.levelNumber = 5;
-levelStartEvent.levelName = 'Dragon Valley';
-levelStartEvent.map = 'fantasy_world';
+void trackLevelStarted() {
+  final levelStartEvent = MetriqusLevelStartedEvent();
+  levelStartEvent.levelNumber = 5;
+  levelStartEvent.levelName = 'Dragon Valley';
+  levelStartEvent.map = 'fantasy_world';
 
-Metriqus.trackLevelStarted(levelStartEvent);
+  Metriqus.trackLevelStarted(levelStartEvent);
+}
+
+void trackLevelCompleted() {
+  final levelCompletedEvent = MetriqusLevelCompletedEvent();
+  levelCompletedEvent.levelNumber = 5;
+  levelCompletedEvent.levelName = 'Dragon Valley';
+  levelCompletedEvent.map = 'fantasy_world';
+  levelCompletedEvent.duration = 240.0; // 4 minutes
+  levelCompletedEvent.levelProgress = 100.0;
+  levelCompletedEvent.levelReward = 15000;
+  levelCompletedEvent.levelReward1 = 500; // experience
+  levelCompletedEvent.levelReward2 = 200; // coins
+
+  Metriqus.trackLevelCompleted(levelCompletedEvent);
+}
 ```
 
-#### `trackLevelCompleted(MetriqusLevelCompletedEvent levelEvent)`
-Tracks when a level is completed.
+### Item Usage
 
 ```dart
-final levelCompletedEvent = MetriqusLevelCompletedEvent();
-levelCompletedEvent.levelNumber = 5;
-levelCompletedEvent.levelName = 'Dragon Valley';
-levelCompletedEvent.map = 'fantasy_world';
-levelCompletedEvent.duration = 240.0;
-levelCompletedEvent.levelProgress = 100.0;
-levelCompletedEvent.levelReward = 15000;
+void trackItemUsed() {
+  final itemUsedEvent = MetriqusItemUsedEvent();
+  itemUsedEvent.itemName = 'health_potion';
+  itemUsedEvent.amount = 1.0;
+  itemUsedEvent.itemType = 'consumable';
+  itemUsedEvent.itemRarity = 'common';
+  itemUsedEvent.itemClass = 'healing';
+  itemUsedEvent.itemCategory = 'potion';
+  itemUsedEvent.reason = 'battle';
 
-Metriqus.trackLevelCompleted(levelCompletedEvent);
+  Metriqus.trackItemUsed(itemUsedEvent);
+}
 ```
 
-#### `trackItemUsed(MetriqusItemUsedEvent itemEvent)`
-Tracks when an item is used.
+### Screen & Performance Tracking
 
 ```dart
-final itemUsedEvent = MetriqusItemUsedEvent();
-itemUsedEvent.itemName = 'health_potion';
-itemUsedEvent.amount = 1.0;
-itemUsedEvent.itemType = 'consumable';
-itemUsedEvent.itemRarity = 'common';
-itemUsedEvent.itemClass = 'healing';
-itemUsedEvent.itemCategory = 'potion';
-itemUsedEvent.reason = 'battle';
-
-Metriqus.trackItemUsed(itemUsedEvent);
-```
-
-#### `trackCampaignAction(MetriqusCampaignActionEvent campaignEvent)`
-Tracks campaign action events.
-
-```dart
-final campaignEvent = MetriqusCampaignActionEvent(
-  'summer_2024',
-  'variant_a', 
-  MetriqusCampaignActionType.click
-);
-
-Metriqus.trackCampaignAction(campaignEvent);
-```
-
-#### `trackPerformance(double fps, {Map<String, dynamic>? parameters})`
-Tracks performance metrics like FPS.
-
-```dart
-Metriqus.trackPerformance(60);
-```
-
-#### `trackScreenView(String screenName, {Map<String, dynamic>? parameters})`
-Tracks screen view events.
-
-```dart
+// Track screen views
 Metriqus.trackScreenView('MainMenu');
-```
 
-#### `trackButtonClick(String buttonName, {Map<String, dynamic>? parameters})`
-Tracks button click events.
+// Track performance metrics
+Metriqus.trackPerformance(60); // 60 FPS
 
-```dart
+// Track button clicks
 Metriqus.trackButtonClick('PlayButton');
 ```
 
-### Ad Revenue Tracking Functions
+## 💰 Ad Revenue Tracking
 
-#### `trackAdRevenue(Map<String, dynamic> adRevenueData)`
-Tracks general ad revenue.
+### General Ad Revenue
 
 ```dart
-final adRevenue = MetriqusAdRevenue.withRevenue('metriqus', 0.15, 'USD');
-adRevenue.adRevenueUnit = 'banner_main';
-adRevenue.adRevenueNetwork = 'AdMob';
-Metriqus.trackAdRevenue(adRevenue.toJson());
+void trackAdRevenue() {
+  final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD');
+  adRevenue.source = 'metriqus';
+  adRevenue.adRevenueUnit = 'banner_main_001';
+  adRevenue.adRevenueNetwork = 'AdMob';
+  adRevenue.adRevenuePlacement = 'main_screen';
+  adRevenue.adImpressionsCount = 1;
+  
+  Metriqus.trackAdRevenue(adRevenue);
+}
 ```
 
-#### AdMob Ad Revenue Tracking
-Tracks AdMob-specific ad revenue.
+### AdMob Specific
 
 ```dart
-final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(0.22, 'EUR');
-admobRevenue.adRevenueUnit = 'ca-app-pub-xxx/xxx';
-Metriqus.trackAdRevenue(admobRevenue.toJson());
+void trackAdmobRevenue() {
+  final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(0.22, 'EUR');
+  admobRevenue.adRevenueUnit = 'ca-app-pub-123456789/987654321';
+  admobRevenue.adRevenueNetwork = 'AdMob';
+  admobRevenue.adRevenuePlacement = 'interstitial';
+  admobRevenue.adImpressionsCount = 1;
+  
+  Metriqus.trackAdmobAdRevenue(admobRevenue);
+}
 ```
 
-#### AppLovin Ad Revenue Tracking
-Tracks AppLovin-specific ad revenue.
+### AppLovin Specific
 
 ```dart
-final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD');
-applovinRevenue.adRevenueUnit = 'applovin_banner_1';
-Metriqus.trackAdRevenue(applovinRevenue.toJson());
+void trackApplovinRevenue() {
+  final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD');
+  applovinRevenue.adRevenueUnit = 'applovin_rewarded_001';
+  applovinRevenue.adRevenueNetwork = 'AppLovin MAX';
+  applovinRevenue.adRevenuePlacement = 'level_complete';
+  applovinRevenue.adImpressionsCount = 1;
+  
+  Metriqus.trackApplovinAdRevenue(applovinRevenue);
+}
 ```
 
-### User Attribute Functions
-
-#### `setUserAttribute(String key, dynamic value)`
-Sets a user attribute.
+## 📢 Campaign & Action Tracking
 
 ```dart
-Metriqus.setUserAttribute('user_level', 25);
-Metriqus.setUserAttribute('is_premium', true);
-Metriqus.setUserAttribute('user_type', 'premium');
+void trackCampaignAction() {
+  final campaignEvent = MetriqusCampaignActionEvent(
+    'summer_2024', 
+    'variant_a', 
+    MetriqusCampaignActionType.click
+  );
+  
+  Metriqus.trackCampaignAction(campaignEvent);
+}
 ```
 
-#### `getUserAttributes()`
-Gets all user attributes.
+## 👤 User Management
+
+### User Attributes
 
 ```dart
+// Set user attributes
+Metriqus.setUserAttribute(TypedParameter.int('user_level', 25));
+Metriqus.setUserAttribute(TypedParameter.bool('is_premium', true));
+Metriqus.setUserAttribute(TypedParameter.string('user_type', 'premium'));
+
+// Get user attributes
 final attributes = Metriqus.getUserAttributes();
-print('User attributes: $attributes');
-```
 
-#### `removeUserAttribute(String key)`
-Removes a user attribute.
-
-```dart
+// Remove user attribute
 Metriqus.removeUserAttribute('user_type');
 ```
 
-### Device and System Information Functions
-
-#### `getAdid()`
-Gets the advertising ID.
+## 📱 Device Information
 
 ```dart
-final adid = await Metriqus.getAdid();
-print('Advertising ID: $adid');
+// Get various device information
+final adid = Metriqus.getAdid();
+final deviceInfo = Metriqus.getDeviceInfo();
+final userId = Metriqus.getUserId();
+final sessionId = Metriqus.getSessionId();
+final geolocation = Metriqus.getGeolocation();
+
+// Check first launch
+final isFirstLaunch = Metriqus.isFirstLaunch();
+final firstTouchTime = Metriqus.getUserFirstTouchTimestamp();
 ```
 
-#### `getDeviceInfo()`
-Gets device information.
+## 🔧 SDK Control
 
 ```dart
-final deviceInfo = await Metriqus.getDeviceInfo();
-print('Device Info: $deviceInfo');
-```
-
-#### `getUserId()`
-Gets the unique user ID.
-
-```dart
-final userId = await Metriqus.getUserId();
-print('User ID: $userId');
-```
-
-#### `getSessionId()`
-Gets the current session ID.
-
-```dart
-final sessionId = await Metriqus.getSessionId();
-print('Session ID: $sessionId');
-```
-
-#### `getGeolocation()`
-Gets geolocation information.
-
-```dart
-final geolocation = await Metriqus.getGeolocation();
-print('Geolocation: $geolocation');
-```
-
-#### `isFirstLaunch()`
-Checks if this is the first app launch.
-
-```dart
-final isFirstLaunch = await Metriqus.isFirstLaunch();
-print('Is First Launch: $isFirstLaunch');
-```
-
-#### `getUserFirstTouchTimestamp()`
-Gets the user's first touch timestamp.
-
-```dart
-final timestamp = await Metriqus.getUserFirstTouchTimestamp();
-print('First Touch: $timestamp');
-```
-
-### SDK State and Control Functions
-
-#### `isInitialized`
-Checks if the SDK is initialized.
-
-```dart
+// Check SDK status
 final isInitialized = Metriqus.isInitialized;
-print('SDK Initialized: $isInitialized');
-```
-
-#### `isTrackingEnabled`
-Checks if tracking is enabled.
-
-```dart
 final isTrackingEnabled = Metriqus.isTrackingEnabled;
-print('Tracking Enabled: $isTrackingEnabled');
+
+// Get current settings
+final settings = Metriqus.getMetriqusSettings();
+
+// Debug logging
+Metriqus.verboseLog("Debug message");
+
+// iOS conversion value (iOS only)
+Metriqus.updateIOSConversionValue(3);
+
+// Clear storage (for debugging)
+Metriqus.clearStorage();
 ```
 
-#### `getMetriqusSettings()`
-Gets the current SDK settings.
+## 🚀 Running the Example
+
+```bash
+cd example
+flutter pub get
+flutter run
+```
+
+## 📝 Configuration
+
+### Environment Settings
 
 ```dart
-final settings = await Metriqus.getMetriqusSettings();
-print('SDK Settings: $settings');
+// For testing
+environment: Environment.sandbox
+
+// For production
+environment: Environment.production
 ```
 
-#### `debugLog(String message, LogLevel logLevel)`
-Sends a manual debug log.
+### Log Levels
 
 ```dart
-Metriqus.debugLog("Hello Metriqus!", LogLevel.debug);
+logLevel: LogLevel.verbose    // All logs
+logLevel: LogLevel.error      // Error logs only
+logLevel: LogLevel.noLog      // No logs
 ```
 
-#### `updateIOSConversionValue(int value)` (iOS Only)
-Updates iOS conversion value.
+### Parameter Types
 
 ```dart
-Metriqus.updateIOSConversionValue(5); // Only works on iOS
+TypedParameter.string('key', 'value')
+TypedParameter.int('key', 123)
+TypedParameter.double('key', 12.34)
+TypedParameter.bool('key', true)
 ```
 
-### Campaign Action Tracking
+## 🛠️ Troubleshooting
 
-#### Campaign Action Events
-Tracks campaign-related actions using event objects.
+### SDK Initialization Issues
 
 ```dart
-final campaignEvent = MetriqusCampaignActionEvent(
-  'summer_2024',
-  'variant_a', 
-  MetriqusCampaignActionType.click
-);
-
-Metriqus.trackCampaignAction(campaignEvent);
+Metriqus.onSdkInitialize.listen((isInitialized) {
+  if (!isInitialized) {
+    print('❌ SDK initialization failed');
+  }
+});
 ```
 
-## Example Implementation
+### Tracking Issues
 
-This example demonstrates all Metriqus SDK features in a complete Flutter application. The example includes:
-
-- **Event Tracking**: Custom events, level progression, item usage
-- **Revenue Tracking**: IAP events, ad revenue from multiple networks
-- **User Management**: Setting, getting, and removing user attributes
-- **Device Information**: Accessing device and system information
-- **SDK Control**: Managing SDK state and settings
-
-## Usage Notes
-
-- Ensure the SDK is initialized before calling any tracking functions
-- Use `MetriqusEnvironment.sandbox` for testing and `MetriqusEnvironment.production` for live apps
-- All tracking functions are designed for Flutter Android/iOS platforms
-- User attributes are automatically persisted and loaded across app sessions
-- Performance tracking helps monitor app performance metrics
-- Ad revenue tracking supports multiple ad networks (AdMob, AppLovin, etc.)
-
-## Support
-
-- 📧 Email: support@metriqus.com
-- 📖 Documentation: [https://docs.metriqus.com](https://docs.metriqus.com)
-- 🐛 Bug Reports: [GitHub Issues](https://github.com/metriqus/flutter-sdk/issues)
-
----
-
-**Complete Metriqus Flutter SDK with all features!** 🚀 
+```dart
+if (Metriqus.isInitialized) {
+  // Your tracking code here
+} else {
+  print('⚠️ SDK not initialized yet');
+}
+```
