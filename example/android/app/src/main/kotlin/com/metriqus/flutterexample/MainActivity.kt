@@ -1,4 +1,4 @@
-package com.metriqus.flutter_example
+package com.metriqus.flutterexample
 
 import io.flutter.embedding.android.FlutterActivity
 
