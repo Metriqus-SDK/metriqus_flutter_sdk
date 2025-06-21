@@ -114,7 +114,7 @@ class MetriqusLogger {
     bool sendImmediately = false,
   }) {
     if (_eventQueue == null) {
-      print(
+      Metriqus.errorLog(
         "🔧 ERROR: EventQueue is NULL! MetriqusLogger not initialized properly!",
       );
       return;

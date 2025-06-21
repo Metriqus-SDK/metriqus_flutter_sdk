@@ -48,55 +48,56 @@ class Metriqus {
   /// Initialize the SDK
   static Future<void> initSdk(MetriqusSettings settings) async {
     try {
-      print("🚀 Metriqus SDK initialization started");
+      verboseLog("🚀 Metriqus SDK initialization started");
 
       if (settings.clientKey.isEmpty || settings.clientSecret.isEmpty) {
-        print("❌ Client key or secret is empty");
+        errorLog("❌ Client key or secret is empty");
         _onSdkInitializeController.add(false);
         return;
       }
 
       _metriqusSettings = settings;
-      print("🔧 Settings configured");
+      verboseLog("🔧 Settings configured");
 
       // Create platform-specific native implementation
       if (MetriqusUtils.isIOS) {
         _native = MetriqusIOS();
-        print("🔧 iOS native instance created");
+        verboseLog("🔧 iOS native instance created");
       } else if (MetriqusUtils.isAndroid) {
         _native = MetriqusAndroid();
-        print("🔧 Android native instance created");
+        verboseLog("🔧 Android native instance created");
       } else {
-        print("❌ Unsupported platform");
+        errorLog("❌ Unsupported platform");
         _onSdkInitializeController.add(false);
         return;
       }
 
       // Initialize native SDK
       try {
-        print("🔧 Starting native SDK initialization...");
+        verboseLog("🔧 Starting native SDK initialization...");
         await _native!.initSdk(settings);
-        print("🔧 Native SDK initialization method completed");
+        verboseLog("🔧 Native SDK initialization method completed");
 
         _isInitialized = _native!.getIsInitialized;
-        print("🔧 Native isInitialized status: $_isInitialized");
+        verboseLog("🔧 Native isInitialized status: $_isInitialized");
 
         if (_isInitialized) {
-          print("✅ Metriqus SDK initialization completed successfully");
+          infoLog("✅ Metriqus SDK initialization completed successfully");
           _onSdkInitializeController.add(true);
         } else {
-          print("❌ Metriqus SDK initialization failed - native returned false");
+          errorLog(
+              "❌ Metriqus SDK initialization failed - native returned false");
           _onSdkInitializeController.add(false);
         }
       } catch (nativeError) {
-        print("❌ Exception during native SDK initialization: $nativeError");
+        errorLog("❌ Exception during native SDK initialization: $nativeError");
         _isInitialized = false;
         _onSdkInitializeController.add(false);
         rethrow;
       }
     } catch (e, stackTrace) {
-      print("❌ Error during SDK initialization: $e");
-      print("❌ Stack trace: $stackTrace");
+      errorLog("❌ Error during SDK initialization: $e");
+      errorLog("❌ Stack trace: $stackTrace");
       _isInitialized = false;
       _onSdkInitializeController.add(false);
     }
@@ -495,24 +496,45 @@ class Metriqus {
 
   /// Debug log method with proper level filtering
   static void debugLog(String message, [LogLevel level = LogLevel.verbose]) {
-    // Get current log level from settings
-    LogLevel currentLogLevel = _metriqusSettings?.logLevel ?? LogLevel.noLog;
-
-    // Check if we should log based on current log level using index comparison
-    // Higher index = more verbose logging
-    // noLog(0) < errorsOnly(1) < debug(2) < verbose(3)
-    // We should log if the message level is LESS THAN OR EQUAL to current setting
-    bool shouldLog = currentLogLevel.index >= level.index;
-
-    if (!shouldLog) return;
-
     final timestamp = MetriqusUtils.timestampSecondsToDateTime(
       MetriqusUtils.getCurrentUtcTimestampSeconds(),
     ).toIso8601String();
     String logLevelStr = level.toString().split('.').last.toUpperCase();
     String logMessage = "[$timestamp][METRIQUS][$logLevelStr] $message";
-    print(logMessage);
+
+    // Always add to stream for listeners (independent of logLevel setting)
     _onLogController.add(logMessage);
+
+    // Get current log level from settings for console printing
+    LogLevel currentLogLevel = _metriqusSettings?.logLevel ?? LogLevel.noLog;
+
+    // Check if we should print to console based on current log level
+    // noLog(0) = print nothing
+    // errorsOnly(1) = print only errorsOnly level messages
+    // debug(2) = print errorsOnly + debug level messages
+    // verbose(3) = print errorsOnly + debug + verbose level messages
+    bool shouldPrintToConsole = _shouldPrintToConsole(currentLogLevel, level);
+
+    // Only print to console if log level allows it
+    if (shouldPrintToConsole) {
+      print(logMessage);
+    }
+  }
+
+  /// Helper method to determine if a message should be printed to console
+  static bool _shouldPrintToConsole(
+      LogLevel currentLogLevel, LogLevel messageLevel) {
+    switch (currentLogLevel) {
+      case LogLevel.noLog:
+        return false; // Never print to console
+      case LogLevel.errorsOnly:
+        return messageLevel == LogLevel.errorsOnly;
+      case LogLevel.debug:
+        return messageLevel == LogLevel.errorsOnly ||
+            messageLevel == LogLevel.debug;
+      case LogLevel.verbose:
+        return true; // Print all levels
+    }
   }
 
   /// Verbose logging for detailed operations

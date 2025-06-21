@@ -17,16 +17,9 @@ import AdServices
 
 public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    // Safe initialization to prevent launch crash
-    guard let messenger = registrar.messenger() else {
-      print("❌ MetriqusFlutterSdkPlugin: Messenger unavailable")
-      return
-    }
-    
-    let channel = FlutterMethodChannel(name: "metriqus_flutter_sdk/device_info", binaryMessenger: messenger)
+    let channel = FlutterMethodChannel(name: "metriqus_flutter_sdk/device_info", binaryMessenger: registrar.messenger())
     let instance = MetriqusFlutterSdkPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
-    print("✅ MetriqusFlutterSdkPlugin registered successfully")
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -178,31 +171,31 @@ public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
       if #available(iOS 11.3, *) {
         SKAdNetwork.registerAppForAdNetworkAttribution()
         result(["success": true, "message": "SKAdNetwork registered successfully"])
-        print("✅ SKAdNetwork registered for attribution")
+        // SKAdNetwork registered for attribution
       } else {
         result(["success": false, "message": "SKAdNetwork not supported on this iOS version"])
-        print("❌ SKAdNetwork not supported on iOS < 11.3")
+        // SKAdNetwork not supported on iOS < 11.3
       }
     }
     
     private func reportAdNetworkAttribution(result: @escaping FlutterResult) {
-      print("[Metriqus] Reporting ad network attribution...")
+      // Reporting ad network attribution
       
       if #available(iOS 15.4, *) {
-        print("[Metriqus] Using updatePostbackConversionValue.")
+        // Using updatePostbackConversionValue
         SKAdNetwork.updatePostbackConversionValue(0) { error in
           self.handleSKAdNetworkCompletion(error: error, result: result)
         }
       } else if #available(iOS 14.0, *) {
-        print("[Metriqus] Using deprecated updateConversionValue.")
+        // Using deprecated updateConversionValue
         SKAdNetwork.updateConversionValue(0)
         result(["success": true, "message": "Fallback to updateConversionValue for older iOS versions (14.0 - 15.4)."])
       } else if #available(iOS 11.3, *) {
-        print("[Metriqus] Using registerAppForAdNetworkAttribution.")
+        // Using registerAppForAdNetworkAttribution
         SKAdNetwork.registerAppForAdNetworkAttribution()
         result(["success": true, "message": "Fallback to registerAppForAdNetworkAttribution for older iOS versions (11.3 - 15.3)."])
       } else {
-        print("[Metriqus] SKAdNetwork not supported on this iOS version.")
+        // SKAdNetwork not supported on this iOS version
         result(["success": false, "message": "SKAdNetwork is not supported on iOS versions below 11.3."])
       }
     }
@@ -214,19 +207,19 @@ public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
         return
       }
       
-      print("[Metriqus] Updating conversion value: \(value)")
+      // Updating conversion value
       
       if #available(iOS 15.4, *) {
-        print("[Metriqus] Using updatePostbackConversionValue.")
+        // Using updatePostbackConversionValue
         SKAdNetwork.updatePostbackConversionValue(value) { error in
           self.handleSKAdNetworkCompletion(error: error, result: result)
         }
       } else if #available(iOS 14.0, *) {
-        print("[Metriqus] Using deprecated updateConversionValue.")
+        // Using deprecated updateConversionValue
         SKAdNetwork.updateConversionValue(value)
         result(["success": true, "message": "Fallback to updateConversionValue for older iOS versions (14.0 - 15.4)."])
       } else {
-        print("[Metriqus] SKAdNetwork not supported on this iOS version.")
+        // SKAdNetwork not supported on this iOS version
         result(["success": false, "message": "SKAdNetwork is not supported on iOS versions below 14.0."])
       }
     }
@@ -281,24 +274,24 @@ public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
     }
     
     private func readAttributionToken(result: @escaping FlutterResult) {
-      print("[Metriqus] Reading attribution token...")
+      // Reading attribution token
       
       #if canImport(AdServices)
       if #available(iOS 14.3, *) {
         do {
           let token = try AAAttribution.attributionToken()
-          print("[Metriqus] Successfully retrieved attribution token.")
+          // Successfully retrieved attribution token
           result(["success": true, "token": token])
         } catch {
-          print("[Metriqus] Failed to retrieve attribution token: \(error.localizedDescription)")
+          // Failed to retrieve attribution token
           result(["success": false, "error": "Failed to retrieve attribution token: \(error.localizedDescription)"])
         }
       } else {
-        print("[Metriqus] Attribution token requires iOS 14.3 or later.")
+        // Attribution token requires iOS 14.3 or later
         result(["success": false, "error": "Attribution token requires iOS 14.3 or later."])
       }
       #else
-      print("[Metriqus] AdServices framework not available.")
+      // AdServices framework not available
       result(["success": false, "error": "AdServices framework not available."])
       #endif
     }
@@ -307,10 +300,10 @@ public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
     
     private func handleSKAdNetworkCompletion(error: Error?, result: @escaping FlutterResult) {
       if let error = error {
-        print("[Metriqus] SKAdNetwork completion failed: \(error.localizedDescription) (Code: \(error._code), Domain: \(error._domain))")
+        // SKAdNetwork completion failed
         result(["success": false, "message": "Error updating postback conversion value: \(error.localizedDescription) (Code: \(error._code), Domain: \(error._domain))"])
       } else {
-        print("[Metriqus] Postback conversion value updated successfully.")
+        // Postback conversion value updated successfully
         result(["success": true, "message": "Postback conversion value updated successfully."])
       }
     }

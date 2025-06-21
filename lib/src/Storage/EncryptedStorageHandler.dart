@@ -15,7 +15,8 @@ class EncryptedStorageHandler implements IStorageHandler {
   bool _cacheInitialized = false;
 
   EncryptedStorageHandler() {
-    print('🔧 [STORAGE] EncryptedStorageHandler constructor called');
+    Metriqus.verboseLog(
+        '🔧 [STORAGE] EncryptedStorageHandler constructor called');
     // Initialize cache asynchronously
     _initializeCache();
   }
@@ -30,7 +31,7 @@ class EncryptedStorageHandler implements IStorageHandler {
   /// Initialize cache by preloading known keys
   Future<void> _initializeCache() async {
     try {
-      print('🔧 [STORAGE] Starting cache initialization');
+      Metriqus.verboseLog('🔧 [STORAGE] Starting cache initialization');
       // Preload commonly used keys
       final commonKeys = [
         "metriqus_current_events",
@@ -48,7 +49,8 @@ class EncryptedStorageHandler implements IStorageHandler {
         "geolocation",
       ];
 
-      print('🔧 [STORAGE] Will preload ${commonKeys.length} keys: $commonKeys');
+      Metriqus.verboseLog(
+          '🔧 [STORAGE] Will preload ${commonKeys.length} keys: $commonKeys');
 
       for (String key in commonKeys) {
         await _preloadKey(key);
@@ -144,24 +146,27 @@ class EncryptedStorageHandler implements IStorageHandler {
   @override
   void saveFile(String saveKey, String saveData) {
     try {
-      print('🔧 [STORAGE] saveFile called: $saveKey = $saveData');
+      Metriqus.verboseLog('🔧 [STORAGE] saveFile called: $saveKey = $saveData');
 
       // Cache the data for immediate sync access
       _cache[saveKey] = saveData;
       _existsCache[saveKey] = true;
 
-      print('🔧 [STORAGE] Data cached successfully for key: $saveKey');
+      Metriqus.verboseLog(
+          '🔧 [STORAGE] Data cached successfully for key: $saveKey');
 
       // Save asynchronously in background
       _saveFileAsync(saveKey, saveData);
 
       // Debug log for attribution key
       if (saveKey == "metriqus_last_send_attribution_date") {
-        print('🎯 [STORAGE] Attribution date saved to cache: $saveData');
-        print(
+        Metriqus.verboseLog(
+            '🎯 [STORAGE] Attribution date saved to cache: $saveData');
+        Metriqus.verboseLog(
           '🎯 [STORAGE] Cache now contains key: ${_existsCache.containsKey(saveKey)}',
         );
-        print('🎯 [STORAGE] Cache value: ${_existsCache[saveKey]}');
+        Metriqus.verboseLog(
+            '🎯 [STORAGE] Cache value: ${_existsCache[saveKey]}');
       }
 
       // Debug log for queue operations (only for important events)
@@ -171,35 +176,39 @@ class EncryptedStorageHandler implements IStorageHandler {
         );
       }
     } catch (e) {
-      print('❌ [STORAGE] Error in saveFile: $e');
+      Metriqus.errorLog('❌ [STORAGE] Error in saveFile: $e');
       Metriqus.errorLog('Error in saveFile: $e');
     }
   }
 
   Future<void> _saveFileAsync(String saveKey, String saveData) async {
     try {
-      print('🔧 [STORAGE] _saveFileAsync called for key: $saveKey');
+      Metriqus.verboseLog(
+          '🔧 [STORAGE] _saveFileAsync called for key: $saveKey');
 
       final directory = await getApplicationSupportDirectory();
       final encryptedKey = _encryptDecryptForFileName(saveKey);
       final file = File('${directory.path}/$encryptedKey');
 
-      print('🔧 [STORAGE] File path: ${file.path}');
+      Metriqus.verboseLog('🔧 [STORAGE] File path: ${file.path}');
 
       await file.parent.create(recursive: true);
       final encryptedData = _encryptDecrypt(saveData);
       await file.writeAsString(encryptedData);
 
-      print('🔧 [STORAGE] File written successfully for key: $saveKey');
+      Metriqus.verboseLog(
+          '🔧 [STORAGE] File written successfully for key: $saveKey');
 
       // Special log for attribution key
       if (saveKey == "metriqus_last_send_attribution_date") {
-        print('🎯 [STORAGE] Attribution date written to disk successfully');
+        Metriqus.verboseLog(
+            '🎯 [STORAGE] Attribution date written to disk successfully');
         final exists = await file.exists();
-        print('🎯 [STORAGE] File exists after write: $exists');
+        Metriqus.verboseLog('🎯 [STORAGE] File exists after write: $exists');
       }
     } catch (e) {
-      print('❌ [STORAGE] Error in _saveFileAsync for key $saveKey: $e');
+      Metriqus.errorLog(
+          '❌ [STORAGE] Error in _saveFileAsync for key $saveKey: $e');
       Metriqus.errorLog('Error occurred when trying to save event data: $e');
     }
   }
@@ -277,20 +286,21 @@ class EncryptedStorageHandler implements IStorageHandler {
   bool checkKeyExist(String saveKey) {
     // FIRST - Special handling for attribution date key
     if (saveKey == "metriqus_last_send_attribution_date") {
-      print(
+      Metriqus.verboseLog(
         '🎯🎯🎯 [STORAGE] ATTRIBUTION KEY DETECTED - SPECIAL HANDLING 🎯🎯🎯',
       );
-      print('🎯 [STORAGE] Cache initialized: $_cacheInitialized');
-      print(
+      Metriqus.verboseLog('🎯 [STORAGE] Cache initialized: $_cacheInitialized');
+      Metriqus.verboseLog(
         '🎯 [STORAGE] Key in existsCache: ${_existsCache.containsKey(saveKey)}',
       );
 
       // Return false for now to force attribution sending
-      print('🎯 [STORAGE] Forcing false result to ensure attribution is sent');
+      Metriqus.verboseLog(
+          '🎯 [STORAGE] Forcing false result to ensure attribution is sent');
       return false;
     }
 
-    print('🔧 [STORAGE] checkKeyExist called for: $saveKey');
+    Metriqus.verboseLog('🔧 [STORAGE] checkKeyExist called for: $saveKey');
     Metriqus.verboseLog('🔧 [STORAGE] Checking key existence: $saveKey');
     Metriqus.verboseLog('🔧 [STORAGE] Cache initialized: $_cacheInitialized');
     Metriqus.verboseLog(

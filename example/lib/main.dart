@@ -23,18 +23,36 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _setupSDKListeners();
     _initSDK();
   }
 
+  void _setupSDKListeners() {
+    Metriqus.onLog.listen((logMessage) {
+      print('🔵 Metriqus Log: $logMessage');
+    });
+
+    Metriqus.onSdkInitialize.listen((isInitialized) {
+      print(
+          '🔧 Metriqus SDK Initialization: ${isInitialized ? 'SUCCESS' : 'FAILED'}');
+    });
+  }
+
   void _initSDK() {
+    print('🚀 Starting Metriqus SDK initialization...');
+
     final settings = MetriqusSettings(
       clientKey: 'bwwknjmjelo2klmu',
       clientSecret: 'bIrlx2M61pUZ7PzZ0SXTqnFAtIqBT7wM',
       environment: Environment.sandbox,
-      logLevel: LogLevel.verbose,
+      logLevel: LogLevel.noLog,
     );
 
+    print('🔧 Settings: ${settings.environment} - ${settings.logLevel}');
+
     Metriqus.initSdk(settings);
+
+    print('🔄 SDK initialization method called');
   }
 
   @override
@@ -372,6 +390,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _isInitialized() {
     _setLoading();
     final isInitialized = Metriqus.isInitialized;
+    print('🔍 SDK Initialization Check: $isInitialized');
     _updateStatus(
         '✅ SDK Initialization Status: ${isInitialized ? 'SDK is initialized' : 'SDK not initialized'}');
   }

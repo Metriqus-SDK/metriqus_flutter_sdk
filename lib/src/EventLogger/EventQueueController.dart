@@ -48,6 +48,10 @@ class EventQueueController implements IEventQueueController {
   /// Add event to queue
   @override
   void addEvent(Event event, {bool sendImmediately = false}) {
+    var remoteSettings = Metriqus.getMetriqusRemoteSettings();
+    int maxBatchCount = remoteSettings?.maxEventBatchCount ?? 10;
+    int currentCount = _eventQueue.events.length;
+
     Metriqus.verboseLog("🔥 [EVENTQUEUE] Starting addEvent process...");
     Metriqus.verboseLog(
       "🔥 [EVENTQUEUE] Event details: name='${event.eventName}', id='${event.eventId}', sendImmediately=$sendImmediately",
@@ -62,6 +66,8 @@ class EventQueueController implements IEventQueueController {
         "event_timestamp": event.eventTimestamp,
         "session_id": event.sessionId,
         "user_id": event.userId,
+        "current_events_before": currentCount,
+        "max_batch_count": maxBatchCount,
       },
     );
 
@@ -70,7 +76,7 @@ class EventQueueController implements IEventQueueController {
     int afterCount = _eventQueue.events.length;
 
     Metriqus.infoLog(
-      "🔥 [EVENTQUEUE] Event added to queue. Before: $beforeCount, After: $afterCount",
+      "🔥 [EVENTQUEUE] Event added to queue. Before: $beforeCount, After: $afterCount ($afterCount/$maxBatchCount)",
     );
 
     String json = _eventQueue.serialize();
@@ -80,6 +86,8 @@ class EventQueueController implements IEventQueueController {
       "QUEUE_STATUS_DETAILED",
       details: {
         "total_events": _eventQueue.events.length,
+        "max_batch_count": maxBatchCount,
+        "queue_ratio": "${_eventQueue.events.length}/$maxBatchCount",
         "queue_size_bytes": jsonSize,
         "queue_size_kb": (jsonSize / 1024).toStringAsFixed(2),
         "last_event_name": event.eventName,
@@ -109,7 +117,7 @@ class EventQueueController implements IEventQueueController {
   /// Check is event queue ready to send server
   void _checkQueueStatus(bool sendImmediately) {
     try {
-      Metriqus.verboseLog("🔥 [EVENTQUEUE] _checkQueueStatus started");
+      // Timer runs completely silently - no startup logs
 
       DateTime currentTime = MetriqusUtils.timestampSecondsToDateTime(
         MetriqusUtils.getCurrentUtcTimestampSeconds(),
@@ -117,60 +125,19 @@ class EventQueueController implements IEventQueueController {
       DateTime lastFlushTime = MetriqusUtils.getUtcStartTime();
 
       String lastFlushTimeStr = _storage.loadData(_lastFlushTimeKey);
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] Last flush time data: ${lastFlushTimeStr.isNotEmpty ? 'EXISTS' : 'EMPTY'}",
-      );
+      // Silent check - no log for data existence
 
       if (lastFlushTimeStr.isNotEmpty) {
         lastFlushTime = MetriqusUtils.parseDate(lastFlushTimeStr);
-        Metriqus.verboseLog(
-          "🔥 [EVENTQUEUE] Last flush time loaded: $lastFlushTime",
-        );
-      } else {
-        Metriqus.verboseLog(
-          "🔥 [EVENTQUEUE] No previous flush time found, using UTC start time: $lastFlushTime",
-        );
+        // Silent load - no log for time loading
       }
 
       var remoteSettings = Metriqus.getMetriqusRemoteSettings();
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] Remote settings loaded: ${remoteSettings != null ? 'SUCCESS' : 'NULL'}",
-      );
 
       int timeSinceLastFlush = currentTime.difference(lastFlushTime).inSeconds;
       int currentEventCount = _eventQueue.events.length;
 
-      Metriqus.eventQueueLog(
-        "QUEUE_CHECK_DETAILED",
-        details: {
-          "current_event_count": currentEventCount,
-          "time_since_last_flush_seconds": timeSinceLastFlush,
-          "send_immediately": sendImmediately,
-          "max_batch_count": remoteSettings?.maxEventBatchCount,
-          "max_store_seconds": remoteSettings?.maxEventStoreSeconds,
-          "current_time": currentTime.toIso8601String(),
-          "last_flush_time": lastFlushTime.toIso8601String(),
-          "pending_batches": _eventsToSend.length,
-          "is_flushing": _isFlushing,
-        },
-      );
-
-      Metriqus.verboseLog("🔥 [EVENTQUEUE] Checking sending conditions:");
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] - Current events: $currentEventCount",
-      );
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] - Max batch count: ${remoteSettings?.maxEventBatchCount}",
-      );
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] - Time since last flush: ${timeSinceLastFlush}s",
-      );
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] - Max store seconds: ${remoteSettings?.maxEventStoreSeconds}",
-      );
-      Metriqus.verboseLog(
-        "🔥 [EVENTQUEUE] - Send immediately: $sendImmediately",
-      );
+      // Timer runs silently - no EventQueueLog
 
       bool batchLimitReached = _eventQueue.events.length >=
           (remoteSettings?.maxEventBatchCount ?? 10);
@@ -179,14 +146,7 @@ class EventQueueController implements IEventQueueController {
       bool shouldSend = remoteSettings != null &&
           (batchLimitReached || timeLimitReached || sendImmediately);
 
-      Metriqus.infoLog("🔥 [EVENTQUEUE] Condition evaluation:");
-      Metriqus.infoLog(
-        "🔥 [EVENTQUEUE] - Batch limit reached: $batchLimitReached",
-      );
-      Metriqus.infoLog(
-        "🔥 [EVENTQUEUE] - Time limit reached: $timeLimitReached",
-      );
-      Metriqus.infoLog("🔥 [EVENTQUEUE] - Should send: $shouldSend");
+      // Timer runs silently - condition evaluation logs removed
 
       if (shouldSend) {
         String reason = "";
@@ -272,19 +232,7 @@ class EventQueueController implements IEventQueueController {
           );
         }
       } else {
-        Metriqus.infoLog(
-          "🔥 [EVENTQUEUE] ⏸️ EventQueue does not yet meet sending conditions",
-        );
-        Metriqus.eventQueueLog(
-          "FLUSH_NOT_TRIGGERED",
-          details: {
-            "current_events": _eventQueue.events.length,
-            "batch_limit": remoteSettings?.maxEventBatchCount,
-            "time_elapsed": currentTime.difference(lastFlushTime).inSeconds,
-            "time_limit": remoteSettings?.maxEventStoreSeconds,
-            "send_immediately": sendImmediately,
-          },
-        );
+        // Timer runs completely silently - no logs at all during tick
       }
     } catch (e) {
       Metriqus.errorLog("❌ EventQueue check error: ${e.toString()}");
