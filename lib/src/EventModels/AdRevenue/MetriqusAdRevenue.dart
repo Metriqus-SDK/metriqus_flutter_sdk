@@ -21,8 +21,10 @@ class MetriqusAdRevenue {
   /// The placement of the ad that contributed to the revenue.
   String? adRevenuePlacement;
 
-  // Getters
+  // Getters and Setters
   String? get source => _source;
+  set source(String? value) => _source = value;
+
   double? get revenue => _revenue;
   String? get currency => _currency;
 
@@ -34,9 +36,9 @@ class MetriqusAdRevenue {
     _source = source;
   }
 
-  /// Initializes a new instance with revenue details.
-  MetriqusAdRevenue.withRevenue(
-      String source, double revenue, String currency) {
+  /// Initializes a new instance with revenue details (source is optional parameter)
+  MetriqusAdRevenue.withRevenue(double revenue, String currency,
+      {String? source}) {
     _source = source;
     _revenue = revenue;
     _currency = currency;

@@ -4,10 +4,10 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:dart_flutter_version/dart_flutter_version.dart';
 import '../Metriqus.dart';
+import '../Package/PackageModels/AppInfoPackage.dart';
 
 /// Device information collector for Flutter
 class DeviceInfo {
@@ -37,10 +37,12 @@ class DeviceInfo {
   /// Initialize device info asynchronously
   Future<void> initialize() async {
     try {
-      // Get package info
-      final packageInfo = await PackageInfo.fromPlatform();
-      packageName = packageInfo.packageName;
-      appVersion = packageInfo.version;
+      // Get app info using AppInfoPackage
+      final appInfo = await AppInfoPackage.getCurrentAppInfo();
+      if (appInfo != null) {
+        packageName = appInfo.packageName ?? '';
+        appVersion = appInfo.appVersion ?? '';
+      }
 
       // Get Flutter version from native code
       await _updateFlutterVersion();

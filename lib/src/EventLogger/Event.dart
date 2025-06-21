@@ -27,6 +27,7 @@ class Event {
   List<DynamicParameter>? item;
   List<DynamicParameter>? publisher;
   Map<String, List<DynamicParameter>>? attribution;
+  List<DynamicParameter>? eventParams;
 
   String get eventNameGetter => eventName;
   List<TypedParameter>? get parametersGetter => parameters;
@@ -52,7 +53,8 @@ class Event {
         item = package.item,
         attribution = package.attribution,
         parameters = package.parameters,
-        userAttributes = package.userAttributes;
+        userAttributes = package.userAttributes,
+        eventParams = package.eventParams;
 
   Event.full({
     required this.eventName,
@@ -72,6 +74,7 @@ class Event {
     this.item,
     this.publisher,
     this.attribution,
+    this.eventParams,
   });
 
   /// Convert event to Map
@@ -130,6 +133,20 @@ class Event {
     // Add user attributes
     if (userAttributes != null) {
       eventMap['user_properties'] = TypedParameter.toSimpleMap(userAttributes!);
+    }
+
+    // Add custom event parameters as array
+    if (eventParams != null && eventParams!.isNotEmpty) {
+      // Check if this contains structured event parameter data
+      final firstParam = eventParams!.first;
+      if (firstParam.name == "event_parameters_data" &&
+          firstParam.value is List) {
+        // Extract the structured array directly
+        eventMap['event_params'] = firstParam.value;
+      } else {
+        // Fallback to standard parameter mapping
+        eventMap['event_params'] = _dynamicParametersToMap(eventParams!);
+      }
     }
 
     return eventMap;
@@ -255,6 +272,7 @@ class Package {
   final Map<String, List<DynamicParameter>>? attribution;
   final List<TypedParameter>? parameters;
   final List<TypedParameter>? userAttributes;
+  final List<DynamicParameter>? eventParams;
 
   Package({
     required this.eventName,
@@ -274,6 +292,7 @@ class Package {
     this.attribution,
     this.parameters,
     this.userAttributes,
+    this.eventParams,
   });
 }
 

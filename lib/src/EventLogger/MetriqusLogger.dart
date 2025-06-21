@@ -137,8 +137,7 @@ class MetriqusLogger {
       sessionId: package.sessionId,
       clientSdk: package.clientSdk,
       isFirstLaunch: package.isFirstLaunch ?? false,
-      eventTimestamp:
-          package.eventTimestamp ??
+      eventTimestamp: package.eventTimestamp ??
           MetriqusUtils.getCurrentUtcTimestampSeconds(),
       userId: package.userId,
       userFirstTouchTimestamp: package.userFirstTouchTimestamp ?? 0,
@@ -157,6 +156,7 @@ class MetriqusLogger {
     event.attribution = package.attribution;
     event.parameters = package.parameters;
     event.userAttributes = package.userAttributes;
+    event.eventParams = package.eventParams;
 
     _eventQueue?.addEvent(event, sendImmediately: sendImmediately);
   }

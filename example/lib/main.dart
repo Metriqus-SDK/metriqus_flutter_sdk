@@ -65,10 +65,35 @@ class _MyHomePageState extends State<MyHomePage> {
   void _trackIAPEvent() {
     _setLoading();
     final iapRevenue = MetriqusInAppRevenue.withRevenue(4.99, 'USD');
+    iapRevenue.brand = 'metriqus';
+    iapRevenue.variant = 'premium';
     iapRevenue.productId = 'premium_upgrade';
     iapRevenue.name = 'Premium Upgrade';
     iapRevenue.category = 'upgrade';
+    iapRevenue.category2 = 'upgrade';
+    iapRevenue.category3 = 'upgrade';
+    iapRevenue.category4 = 'upgrade';
+    iapRevenue.category5 = 'upgrade';
+    iapRevenue.price = 4.99;
     iapRevenue.quantity = 1;
+    iapRevenue.refund = 0;
+    iapRevenue.coupon = 'TEST2025';
+    iapRevenue.affiliation = 'metriqus';
+    iapRevenue.locationId = 'location_123';
+    iapRevenue.listId = 'list_123';
+    iapRevenue.listName = 'list_123';
+    iapRevenue.listIndex = 1;
+    iapRevenue.promotionId = 'promo_123';
+    iapRevenue.promotionName = 'promo_123';
+    iapRevenue.creativeName = 'creative_123';
+    iapRevenue.creativeSlot = 'slot_123';
+    iapRevenue.itemParams = [
+      TypedParameter.string('test', 'test'),
+      TypedParameter.bool('test', true),
+      TypedParameter.int('test', 1),
+      TypedParameter.double('test', 1.0),
+    ];
+
     iapRevenue.setTransactionId(
         'txn_${MetriqusUtils.getCurrentUtcTimestampSeconds()}');
     Metriqus.trackIAPEvent(iapRevenue);
@@ -85,6 +110,10 @@ class _MyHomePageState extends State<MyHomePage> {
     customEvent.addParameter(TypedParameter.int(
         'timestamp', MetriqusUtils.getCurrentUtcTimestampSeconds()));
     customEvent.addParameter(TypedParameter.int('user_level', 5));
+    customEvent.addParameter(TypedParameter.string('test', 'test'));
+    customEvent.addParameter(TypedParameter.bool('test', true));
+    customEvent.addParameter(TypedParameter.int('test', 1));
+    customEvent.addParameter(TypedParameter.double('test', 1.0));
     Metriqus.trackCustomEvent(customEvent);
     _updateStatus('✅ Custom Event Tracked: button_clicked with 4 parameters');
   }
@@ -151,7 +180,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // trackAdRevenue Function
   void _trackAdRevenue() {
     _setLoading();
-    final adRevenue = MetriqusAdRevenue.withRevenue('metriqus', 0.15, 'USD');
+    final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD');
+    adRevenue.source = 'metriqus'; // Set source as parameter
     adRevenue.adRevenueUnit = 'banner_main_001';
     adRevenue.adRevenueNetwork = 'AdMob';
     adRevenue.adRevenuePlacement = 'main_screen';
@@ -177,6 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _setLoading();
     final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD');
     applovinRevenue.adRevenueUnit = 'applovin_rewarded_001';
+    applovinRevenue.adRevenueNetwork = 'AppLovin MAX';
     applovinRevenue.adRevenuePlacement = 'level_complete';
     applovinRevenue.adImpressionsCount = 1;
     Metriqus.trackApplovinAdRevenue(applovinRevenue);

@@ -32,6 +32,7 @@ dependencies:
   uuid: ^4.5.1
   intl: ^0.19.0
   dart_flutter_version: ^1.0.6
+  yaml: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -51,10 +52,9 @@ flutter:
       ios:
         pluginClass: MetriqusFlutterSdkPlugin
 
-  # To add assets to your package, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # Assets for SDK version information
+  assets:
+    - pubspec.yaml
   #
   # For details regarding assets in packages, see
   # https://flutter.dev/to/asset-from-package

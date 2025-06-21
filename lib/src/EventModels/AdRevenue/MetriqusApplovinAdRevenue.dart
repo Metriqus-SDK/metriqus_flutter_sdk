@@ -9,5 +9,5 @@ class MetriqusApplovinAdRevenue extends MetriqusAdRevenue {
 
   /// Constructor with revenue and currency
   MetriqusApplovinAdRevenue.withRevenue(double revenue, String currency)
-      : super.withRevenue(_source, revenue, currency);
+      : super.withRevenue(revenue, currency, source: _source);
 }

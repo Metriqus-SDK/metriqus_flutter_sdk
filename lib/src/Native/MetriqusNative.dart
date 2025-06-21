@@ -42,7 +42,6 @@ abstract class MetriqusNative {
   // Private fields
   IPackageSender? _packageSender;
   DeviceInfo? _deviceInfo;
-  MetriqusRemoteSettings? _remoteSettings;
   Geolocation? _geolocation;
   InternetConnectionChecker? _internetConnectionChecker;
 
@@ -241,10 +240,8 @@ abstract class MetriqusNative {
 
         var remoteSettings = getMetriqusRemoteSettings();
 
-        double passedMinutesSinceLastSession = currentTime
-            .difference(lastSessionStartTime)
-            .inMinutes
-            .toDouble();
+        double passedMinutesSinceLastSession =
+            currentTime.difference(lastSessionStartTime).inMinutes.toDouble();
 
         Metriqus.verboseLog(
           "Passed Minutes Since Last Session: $passedMinutesSinceLastSession",
@@ -384,9 +381,8 @@ abstract class MetriqusNative {
           );
           DateTime lastAttributionDate = _parseDate(lastAttributionDateStr);
 
-          int daysSinceLastAttribution = lastAttributionDate
-              .difference(installDate)
-              .inDays;
+          int daysSinceLastAttribution =
+              lastAttributionDate.difference(installDate).inDays;
           Metriqus.verboseLog(
             "🎯 [ATTRIBUTION] Days since last attribution: $daysSinceLastAttribution",
           );
@@ -457,7 +453,7 @@ abstract class MetriqusNative {
 
   /// Get Metriqus remote settings
   MetriqusRemoteSettings getMetriqusRemoteSettings() {
-    return _remoteSettings ?? MetriqusRemoteSettings();
+    return MetriqusRemoteSettings.getInstance();
   }
 
   /// Fetch geolocation
@@ -556,7 +552,7 @@ abstract class MetriqusNative {
     var mro = WebResponse.MetriqusResponseObject.parse(response.data);
 
     if (response.isSuccess && mro != null) {
-      _remoteSettings = MetriqusRemoteSettings.parse(mro.data);
+      MetriqusRemoteSettings.parse(mro.data);
 
       // Save as JSON string for storage
       String dataToSave;
@@ -569,15 +565,16 @@ abstract class MetriqusNative {
       _remoteSettingsFetched = true;
 
       return true;
-    } else if (_remoteSettings == null) {
+    } else {
       bool isKeyExist = storage!.checkKeyExist(remoteSettingsKey);
 
       if (isKeyExist) {
         String data = storage!.loadData(remoteSettingsKey);
         Metriqus.verboseLog("Remote Settings loaded from storage: $data");
-        _remoteSettings = MetriqusRemoteSettings.parse(data);
+        MetriqusRemoteSettings.parse(data);
       } else {
-        _remoteSettings = MetriqusRemoteSettings();
+        // Use singleton instance with default values
+        MetriqusRemoteSettings.getInstance();
         Metriqus.infoLog(
           "Remote Settings couldn't fetched or couldn't loaded from storage, using default",
         );

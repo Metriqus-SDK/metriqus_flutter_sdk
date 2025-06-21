@@ -1,5 +1,5 @@
 ﻿import 'dart:convert';
-import 'package:package_info_plus/package_info_plus.dart';
+import '../../Package/PackageModels/AppInfoPackage.dart';
 import '../../WebRequest/RequestSender.dart';
 import '../../Metriqus.dart';
 import '../../ThirdParty/SimpleJSON.dart';
@@ -49,9 +49,9 @@ class MetaAttributionUtilities {
 
       if (data == null || nonce == null) return null;
 
-      // Get package info to retrieve bundle ID
-      final packageInfo = await PackageInfo.fromPlatform();
-      final bundleId = packageInfo.packageName;
+      // Get app info to retrieve bundle ID
+      final appInfo = await AppInfoPackage.getCurrentAppInfo();
+      final bundleId = appInfo?.packageName ?? '';
 
       final headers = <String, String>{
         'Content-Type': 'application/json',

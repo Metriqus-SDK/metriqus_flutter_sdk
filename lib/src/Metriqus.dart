@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:yaml/yaml.dart';
 import 'MetriqusSettings.dart';
 import 'Utilities/MetriqusUtils.dart';
 import 'Native/MetriqusNative.dart';
@@ -9,6 +10,7 @@ import 'Native/iOS/MetriqusIOS.dart';
 import 'Native/Android/MetriqusAndroid.dart';
 import 'EventModels/AdRevenue/MetriqusAdRevenue.dart';
 import 'EventModels/AdRevenue/MetriqusApplovinAdRevenue.dart';
+
 import 'EventModels/AdRevenue/MetriqusAdmobAdRevenue.dart';
 import 'EventModels/MetriqusInAppRevenue.dart';
 import 'EventModels/CustomEvents/MetriqusCustomEvent.dart';
@@ -19,6 +21,7 @@ import 'EventModels/CustomEvents/LevelProgression/MetriqusLevelStartedEvent.dart
 import 'EventModels/CustomEvents/LevelProgression/MetriqusLevelCompletedEvent.dart';
 import 'EventModels/CustomEvents/MetriqusItemUsedEvent.dart';
 import 'EventModels/CustomEvents/MetriqusCampaignActionEvent.dart';
+import 'Package/PackageModels/AppInfoPackage.dart';
 
 /// Main Metriqus SDK class for Flutter
 class Metriqus {
@@ -374,11 +377,22 @@ class Metriqus {
   /// Get client SDK version
   static Future<String> getClientSdk() async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      return "flutter-${packageInfo.version}";
+      // Read pubspec.yaml from assets
+      final pubspecContent = await rootBundle
+          .loadString('packages/metriqus_flutter_sdk/pubspec.yaml');
+
+      // Parse YAML content properly
+      final yamlDoc = loadYaml(pubspecContent);
+      final version = yamlDoc['version']?.toString();
+
+      if (version != null && version.isNotEmpty) {
+        return "flutter-$version";
+      }
+
+      return "flutter-";
     } catch (e) {
-      errorLog("Error getting package info: $e");
-      return "";
+      verboseLog("Could not read SDK version from pubspec.yaml: $e");
+      return "flutter-";
     }
   }
 
@@ -517,17 +531,15 @@ class Metriqus {
 
   /// Event logging for tracking events
   static void eventLog(String eventName, Map<String, dynamic>? parameters) {
-    String paramStr = parameters != null
-        ? " | Parameters: ${parameters.toString()}"
-        : "";
+    String paramStr =
+        parameters != null ? " | Parameters: ${parameters.toString()}" : "";
     debugLog("📊 EVENT: $eventName$paramStr", LogLevel.debug);
   }
 
   /// EventQueue logging for queue operations
   static void eventQueueLog(String operation, {Map<String, dynamic>? details}) {
-    String detailStr = details != null
-        ? " | Details: ${details.toString()}"
-        : "";
+    String detailStr =
+        details != null ? " | Details: ${details.toString()}" : "";
     debugLog("📦 EVENTQUEUE: $operation$detailStr", LogLevel.verbose);
   }
 

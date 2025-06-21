@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../ThirdParty/SimpleJSON.dart';
 import '../../Metriqus.dart';
-import '../../MetriqusSettings.dart';
 
 /// Represents application information package
 class AppInfoPackage {
@@ -25,32 +25,15 @@ class AppInfoPackage {
     };
   }
 
-  /// Convert to JSON string
-  String toJsonString() {
-    return jsonEncode(toJson());
-  }
-
-  /// Parse from JSON node
-  static AppInfoPackage? parseJson(JSONNode jsonNode) {
-    try {
-      final packageName = MetriqusJSON.getJsonString(jsonNode, packageNameKey);
-      final appVersion = MetriqusJSON.getJsonString(jsonNode, appVersionKey);
-
-      if (packageName != null && appVersion != null) {
-        return AppInfoPackage(packageName, appVersion);
-      }
-      return null;
-    } catch (e) {
-      Metriqus.errorLog("AppInfoPackage parseJson failed: ${e.toString()}");
-      return null;
-    }
-  }
-
   /// Get current app info
-  static AppInfoPackage? getCurrentAppInfo() {
+  static Future<AppInfoPackage?> getCurrentAppInfo() async {
     try {
-      // For now, return empty values since package info should come from platform
-      return AppInfoPackage('', '');
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      return AppInfoPackage(
+        packageInfo.packageName,
+        packageInfo.version,
+      );
     } catch (e) {
       Metriqus.errorLog("getCurrentAppInfo failed: ${e.toString()}");
       return null;

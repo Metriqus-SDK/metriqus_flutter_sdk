@@ -1,5 +1,4 @@
 import 'dart:io' show Platform;
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import '../MetriqusSettings.dart';
 import '../Utilities/DeviceInfo.dart';
@@ -98,16 +97,80 @@ class PackageBuilder {
 
     final iapParameters = <DynamicParameter>[];
 
+    // Always add all parameters to ensure complete data transmission
     if (event.revenue != null) {
-      _addInteger(iapParameters, "revenue", (event.revenue! * 1000000).toInt());
+      _addFloat(iapParameters, "revenue", (event.revenue! * 1000000));
     }
 
-    _addString(iapParameters, "currency", event.currency);
-    _addString(iapParameters, "product_id", event.productId);
-    _addString(iapParameters, "name", event.name);
-    _addString(iapParameters, "brand", event.brand);
-    _addString(iapParameters, "variant", event.variant);
-    _addString(iapParameters, "category", event.category);
+    // Basic parameters - add all of them
+    _addStringAlways(iapParameters, "currency", event.currency);
+    _addStringAlways(iapParameters, "product_id", event.productId);
+    _addStringAlways(iapParameters, "name", event.name);
+    _addStringAlways(iapParameters, "brand", event.brand);
+    _addStringAlways(iapParameters, "variant", event.variant);
+    _addStringAlways(iapParameters, "category", event.category);
+
+    // Additional category levels
+    _addStringAlways(iapParameters, "category2", event.category2);
+    _addStringAlways(iapParameters, "category3", event.category3);
+    _addStringAlways(iapParameters, "category4", event.category4);
+    _addStringAlways(iapParameters, "category5", event.category5);
+
+    // Price and quantity
+    if (event.price != null) {
+      _addFloat(iapParameters, "price", event.price!);
+    }
+    if (event.quantity != null) {
+      _addInteger(iapParameters, "quantity", event.quantity!);
+    }
+
+    // Refund amount
+    if (event.refund != null) {
+      _addFloat(iapParameters, "refund", event.refund!);
+    }
+
+    // Promotion and marketing related
+    _addStringAlways(iapParameters, "coupon", event.coupon);
+    _addStringAlways(iapParameters, "affiliation", event.affiliation);
+    _addStringAlways(iapParameters, "location_id", event.locationId);
+    _addStringAlways(iapParameters, "list_id", event.listId);
+    _addStringAlways(iapParameters, "list_name", event.listName);
+
+    if (event.listIndex != null) {
+      _addInteger(iapParameters, "list_index", event.listIndex!);
+    }
+
+    _addStringAlways(iapParameters, "promotion_id", event.promotionId);
+    _addStringAlways(iapParameters, "promotion_name", event.promotionName);
+    _addStringAlways(iapParameters, "creative_name", event.creativeName);
+    _addStringAlways(iapParameters, "creative_slot", event.creativeSlot);
+
+    // Transaction ID
+    _addStringAlways(iapParameters, "transaction_id", event.getTransactionId());
+
+    // Custom item parameters as array with typed values
+    if (event.itemParams != null) {
+      final itemParamsArray = event.itemParams!.map((param) {
+        final Map<String, dynamic> valueMap = {};
+
+        // Set appropriate value field based on type
+        if (param.value is String) {
+          valueMap['string_value'] = param.value as String;
+        } else if (param.value is int) {
+          valueMap['int_value'] = param.value as int;
+        } else if (param.value is double) {
+          valueMap['float_value'] = param.value as double;
+        } else if (param.value is bool) {
+          valueMap['bool_value'] = param.value as bool;
+        }
+
+        return {
+          'key': param.name,
+          'value': valueMap,
+        };
+      }).toList();
+      iapParameters.add(DynamicParameter("item_params", itemParamsArray));
+    }
 
     package.item = iapParameters;
   }
@@ -153,15 +216,23 @@ class PackageBuilder {
 
     final publisherParameters = <DynamicParameter>[];
 
-    _addString(publisherParameters, "ad_source", event.source);
+    // Core ad revenue parameters
+    _addStringAlways(publisherParameters, "ad_source", event.source);
     if (event.revenue != null) {
-      _addInteger(
-        publisherParameters,
-        "ad_revenue",
-        (event.revenue! * 1000000).toInt(),
-      );
+      _addFloat(publisherParameters, "ad_revenue", event.revenue! * 1000000);
     }
-    _addString(publisherParameters, "ad_currency", event.currency);
+    _addStringAlways(publisherParameters, "ad_currency", event.currency);
+
+    if (event.adImpressionsCount != null) {
+      _addInteger(publisherParameters, "ad_impression_count",
+          event.adImpressionsCount!);
+    }
+    _addStringAlways(
+        publisherParameters, "ad_revenue_network", event.adRevenueNetwork);
+    _addStringAlways(
+        publisherParameters, "ad_revenue_unit", event.adRevenueUnit);
+    _addStringAlways(
+        publisherParameters, "ad_revenue_placement", event.adRevenuePlacement);
 
     package.publisher = publisherParameters;
   }
@@ -172,7 +243,35 @@ class PackageBuilder {
     MetriqusCustomEvent event,
   ) async {
     await _addDefaultParameters(package);
-    package.parameters = event.getParameters();
+
+    // Convert custom event parameters to array format like IAP
+    final eventParams = event.getParameters();
+    if (eventParams != null && eventParams.isNotEmpty) {
+      final parametersArray = eventParams.map((param) {
+        final Map<String, dynamic> valueMap = {};
+
+        // Set appropriate value field based on type
+        if (param.value is String) {
+          valueMap['string_value'] = param.value as String;
+        } else if (param.value is int) {
+          valueMap['int_value'] = param.value as int;
+        } else if (param.value is double) {
+          valueMap['float_value'] = param.value as double;
+        } else if (param.value is bool) {
+          valueMap['bool_value'] = param.value as bool;
+        }
+
+        return {
+          'key': param.name,
+          'value': valueMap,
+        };
+      }).toList();
+
+      // Add to eventParams field - store the structured array data
+      package.eventParams = [
+        DynamicParameter("event_parameters_data", parametersArray)
+      ];
+    }
   }
 
   /// Adds default parameters to package
@@ -199,8 +298,8 @@ class PackageBuilder {
       // During initialization, get first launch time directly from native
       package.userFirstTouchTimestamp =
           MetriqusUtils.dateTimeToUtcTimestampSeconds(
-            native?.getFirstLaunchTime() ?? MetriqusUtils.getUtcStartTime(),
-          );
+        native?.getFirstLaunchTime() ?? MetriqusUtils.getUtcStartTime(),
+      );
       package.environment = metriqusSettings?.environment.name ?? 'production';
 
       // Device parameters
@@ -211,9 +310,9 @@ class PackageBuilder {
           "flutter_version",
           deviceInfo!.flutterVersion,
         );
-        _addString(deviceParameters, "type", deviceInfo!.deviceType);
-        _addString(deviceParameters, "name", deviceInfo!.deviceName);
-        _addString(deviceParameters, "model", deviceInfo!.deviceModel);
+        _addString(deviceParameters, "device_type", deviceInfo!.deviceType);
+        _addString(deviceParameters, "device_name", deviceInfo!.deviceName);
+        _addString(deviceParameters, "device_model", deviceInfo!.deviceModel);
         _addString(
           deviceParameters,
           "graphics_device_name",
@@ -247,13 +346,15 @@ class PackageBuilder {
           "screen_height",
           deviceInfo!.screenHeight.toString(),
         );
-        _addString(deviceParameters, "id", deviceInfo!.deviceId);
+        _addString(deviceParameters, "device_id", deviceInfo!.deviceId);
         _addString(deviceParameters, "ad_id", deviceInfo!.adId);
         _addString(
           deviceParameters,
           "tracking_enabled",
           deviceInfo!.trackingEnabled.toString().toUpperCase(),
         );
+        _addString(
+            deviceParameters, "platform", deviceInfo!.platform.toString());
 
         // Debug log
         Metriqus.verboseLog(
@@ -262,14 +363,8 @@ class PackageBuilder {
       }
       package.device = deviceParameters;
 
-      // Get package info to retrieve bundle ID and version
-      final packageInfo = await PackageInfo.fromPlatform();
-
-      // App info
-      package.appInfo = AppInfoPackage(
-        packageInfo.packageName,
-        packageInfo.version,
-      );
+      // App info - use getCurrentAppInfo() method
+      package.appInfo = await AppInfoPackage.getCurrentAppInfo();
 
       // Geolocation parameters - get directly from native during initialization
       final geolocation = native?.getGeolocation();
@@ -347,10 +442,22 @@ class PackageBuilder {
     }
   }
 
+  void _addFloat(List<DynamicParameter> list, String key, double? value) {
+    if (value != null) {
+      list.add(DynamicParameter(key, value));
+    }
+  }
+
   void _addBoolean(List<DynamicParameter> list, String key, bool? value) {
     if (value != null) {
       list.add(DynamicParameter(key, value));
     }
+  }
+
+  void _addStringAlways(
+      List<DynamicParameter> list, String key, String? value) {
+    // Always add the parameter, even if null or empty
+    list.add(DynamicParameter(key, value ?? ""));
   }
 }
 
@@ -374,6 +481,7 @@ class Package {
   Map<String, List<DynamicParameter>>? attribution;
   List<TypedParameter>? parameters;
   List<TypedParameter>? userAttributes;
+  List<DynamicParameter>? eventParams;
 
   /// Default constructor
   Package();
@@ -403,6 +511,7 @@ class Package {
       'attribution': attribution?.keys.length ?? 0,
       'parameters': parameters?.length ?? 0,
       'userAttributes': userAttributes?.length ?? 0,
+      'eventParams': eventParams?.length ?? 0,
     };
   }
 
@@ -433,6 +542,7 @@ class Package {
       'userAttributes': userAttributes
           ?.map((param) => {'name': param.name, 'value': param.value})
           .toList(),
+      'eventParams': eventParams?.map((param) => param.toJson()).toList(),
     };
   }
 

@@ -2,6 +2,8 @@ name: metriqus_example
 description: Example app demonstrating Metriqus Flutter SDK usage
 version: 1.0.0+1
 
+publish_to: 'none'
+
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: ">=3.0.0"
@@ -19,4 +21,8 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
-  uses-material-design: true 
+  uses-material-design: true
+
+# App bundle identifier - managed from single location
+# Used by both Android (applicationId) and iOS (PRODUCT_BUNDLE_IDENTIFIER)
+flutter_app_bundle_id: com.metriqus.flutter_example

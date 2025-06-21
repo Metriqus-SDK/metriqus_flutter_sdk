@@ -8,7 +8,7 @@ import 'EventRequestSender.dart';
 import '../Utilities/Backoff.dart';
 import '../Utilities/MetriqusUtils.dart';
 import '../Metriqus.dart';
-import '../MetriqusRemoteSettings.dart';
+
 import '../ThirdParty/SimpleJSON.dart';
 
 /// Stores event in a queue. Responsible for storing and flushing queue when conditions are met.
@@ -168,14 +168,11 @@ class EventQueueController implements IEventQueueController {
         "🔥 [EVENTQUEUE] - Send immediately: $sendImmediately",
       );
 
-      bool batchLimitReached =
-          _eventQueue.events.length >=
-          (remoteSettings?.maxEventBatchCount ?? 50);
-      bool timeLimitReached =
-          currentTime.difference(lastFlushTime).inSeconds >
+      bool batchLimitReached = _eventQueue.events.length >=
+          (remoteSettings?.maxEventBatchCount ?? 10);
+      bool timeLimitReached = currentTime.difference(lastFlushTime).inSeconds >
           (remoteSettings?.maxEventStoreSeconds ?? 300);
-      bool shouldSend =
-          remoteSettings != null &&
+      bool shouldSend = remoteSettings != null &&
           (batchLimitReached || timeLimitReached || sendImmediately);
 
       Metriqus.infoLog("🔥 [EVENTQUEUE] Condition evaluation:");
@@ -331,9 +328,8 @@ class EventQueueController implements IEventQueueController {
         details: {
           "pending_batches": _eventsToSend.length,
           "is_flushing": _isFlushing,
-          "first_batch_event_count": _eventsToSend.isNotEmpty
-              ? _eventsToSend.first.events.length
-              : 0,
+          "first_batch_event_count":
+              _eventsToSend.isNotEmpty ? _eventsToSend.first.events.length : 0,
         },
       );
 
@@ -426,9 +422,8 @@ class EventQueueController implements IEventQueueController {
         "data_size_kb": (dataSize / 1024).toStringAsFixed(2),
         "batch_index": 0,
         "total_pending_batches": _eventsToSend.length,
-        "event_names": selectedEventQueue.events
-            .map((e) => e.eventName)
-            .toList(),
+        "event_names":
+            selectedEventQueue.events.map((e) => e.eventName).toList(),
       },
     );
 
