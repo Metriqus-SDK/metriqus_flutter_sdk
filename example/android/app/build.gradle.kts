@@ -5,23 +5,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Function to read bundle ID from pubspec.yaml
-fun getFlutterBundleId(): String {
-    val pubspecFile = file("../../pubspec.yaml")
-    if (pubspecFile.exists()) {
-        val pubspecContent = pubspecFile.readText()
-        val regex = """flutter_app_bundle_id:\s*(.+)""".toRegex()
-        val matchResult = regex.find(pubspecContent)
-        if (matchResult != null) {
-            return matchResult.groupValues[1].trim()
-        }
-    }
-    // Fallback value
-    return "com.metriqus.flutter_example"
-}
-
 android {
-    namespace = getFlutterBundleId()
+    namespace = "com.metriqus.flutterexample"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -35,8 +20,8 @@ android {
     }
 
     defaultConfig {
-        // Application ID automatically read from pubspec.yaml
-        applicationId = getFlutterBundleId()
+        // Static Application ID for Android
+        applicationId = "com.metriqus.flutterexample"
         // Other values automatically read from pubspec.yaml
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
