@@ -192,4 +192,10 @@ class MetriqusPackageSender implements IPackageSender {
       Metriqus.errorLog("Error sending attribution package: $e");
     }
   }
+
+  @override
+  void dispose() {
+    // This class doesn't hold resources that need disposal,
+    // but we implement the method to satisfy the interface.
+  }
 }

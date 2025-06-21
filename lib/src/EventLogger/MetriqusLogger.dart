@@ -221,6 +221,34 @@ class MetriqusLogger {
       buffer.writeln("👤 User Attributes: empty");
     }
 
+    // Attribution
+    if (package.attribution != null && package.attribution!.isNotEmpty) {
+      buffer.writeln("🎯 Attribution:");
+      for (final platform in package.attribution!.entries) {
+        buffer.writeln("   Platform: ${platform.key}");
+        for (final attr in platform.value) {
+          if (attr.name == "params" && attr.value is List) {
+            buffer.writeln(
+                "   ${attr.name}: [${(attr.value as List).length} items]");
+            for (final item in (attr.value as List)) {
+              if (item is Map &&
+                  item.containsKey('key') &&
+                  item.containsKey('value')) {
+                final key = item['key'];
+                final value = item['value'];
+                buffer.writeln("     - $key: $value");
+              }
+            }
+          } else {
+            buffer.writeln("   ${attr.name}: ${attr.value}");
+          }
+        }
+      }
+    } else {
+      buffer.writeln(
+          "🎯 Attribution: ${package.attribution == null ? 'null' : 'empty'}");
+    }
+
     return buffer.toString().trim();
   }
 
@@ -277,5 +305,12 @@ class MetriqusLogger {
     } else {
       return json.toString();
     }
+  }
+
+  /// Dispose the logger and its resources
+  static void dispose() {
+    _eventQueue?.dispose();
+    _eventQueue = null;
+    Metriqus.verboseLog("MetriqusLogger disposed.");
   }
 }

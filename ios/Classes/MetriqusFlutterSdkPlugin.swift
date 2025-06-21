@@ -3,8 +3,12 @@ import UIKit
 import Metal
 import MetalKit
 import AdSupport
-import AppTrackingTransparency
 import StoreKit
+
+// Conditional imports with availability guards
+#if canImport(AppTrackingTransparency)
+import AppTrackingTransparency
+#endif
 
 // AdServices is only available on iOS 14.3+
 #if canImport(AdServices)
@@ -13,9 +17,16 @@ import AdServices
 
 public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "metriqus_flutter_sdk/device_info", binaryMessenger: registrar.messenger())
+    // Safe initialization to prevent launch crash
+    guard let messenger = registrar.messenger() else {
+      print("❌ MetriqusFlutterSdkPlugin: Messenger unavailable")
+      return
+    }
+    
+    let channel = FlutterMethodChannel(name: "metriqus_flutter_sdk/device_info", binaryMessenger: messenger)
     let instance = MetriqusFlutterSdkPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
+    print("✅ MetriqusFlutterSdkPlugin registered successfully")
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -94,6 +105,7 @@ public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
   }
   
   private func getAdId(result: @escaping FlutterResult) {
+    #if canImport(AppTrackingTransparency)
     if #available(iOS 14, *) {
       // iOS 14+ için ATTrackingManager kullan
       let trackingStatus = ATTrackingManager.trackingAuthorizationStatus
@@ -122,6 +134,20 @@ public class MetriqusFlutterSdkPlugin: NSObject, FlutterPlugin {
       
       result(adInfo)
     }
+    #else
+    // iOS 14 öncesi için ASIdentifierManager kullan
+    let advertisingManager = ASIdentifierManager.shared()
+    let isTrackingEnabled = advertisingManager.isAdvertisingTrackingEnabled
+    let advertisingId = advertisingManager.advertisingIdentifier.uuidString
+    
+    let adInfo: [String: Any] = [
+      "success": true,
+      "trackingEnabled": isTrackingEnabled,
+      "adId": isTrackingEnabled && advertisingId != "00000000-0000-0000-0000-000000000000" ? advertisingId : ""
+    ]
+    
+    result(adInfo)
+    #endif
   }
   
   

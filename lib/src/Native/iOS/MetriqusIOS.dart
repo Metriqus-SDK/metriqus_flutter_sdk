@@ -1,5 +1,7 @@
-import 'dart:io' show Platform;
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../MetriqusNative.dart';
@@ -7,6 +9,7 @@ import '../../MetriqusSettings.dart';
 import '../../Utilities/MetriqusUtils.dart';
 import '../../EventModels/Attribution/MetriqusAttribution.dart';
 import '../../ThirdParty/SimpleJSON.dart';
+import '../../Metriqus.dart';
 
 /// iOS-specific implementation of MetriqusNative
 class MetriqusIOS extends MetriqusNative {
@@ -14,7 +17,8 @@ class MetriqusIOS extends MetriqusNative {
 
   @override
   Future<void> initSdk(MetriqusSettings settings) async {
-    if (!Platform.isIOS) {
+    // Platform kontrolü - MetriqusUtils helper fonksiyonu ile güvenli şekilde
+    if (!MetriqusUtils.isIOS) {
       print("MetriqusIOS can only be used on iOS platform");
       return;
     }
@@ -81,7 +85,7 @@ class MetriqusIOS extends MetriqusNative {
 
   @override
   void readAttribution(
-    Function(MetriqusAttribution) onReadCallback,
+    Function(MetriqusAttribution?) onReadCallback,
     Function(String) onError,
   ) async {
     try {
@@ -96,27 +100,46 @@ class MetriqusIOS extends MetriqusNative {
 
         if (success) {
           final token = result['token'] ?? '';
-          print(
-            "✅ Attribution token obtained: ${token.substring(0, min<int>(50, token.length))}...",
-          );
 
-          // Request attribution data from Apple with token
-          final attribution = await _requestAttributionData(token);
-          onReadCallback(attribution);
+          if (token.isNotEmpty) {
+            print(
+                "✅ Attribution token obtained: ${token.substring(0, min<int>(50, token.length))}...");
+
+            // Request attribution data from Apple with token
+            final attribution = await _requestAttributionData(token);
+            if (attribution != null) {
+              print("🎯 [DEBUG] Attribution data received from Apple:");
+              print("  - attribution: ${attribution.attribution}");
+              print("  - orgId: ${attribution.orgId}");
+              print("  - campaignId: ${attribution.campaignId}");
+              print(
+                  "  - raw: ${attribution.raw?.substring(0, min<int>(50, attribution.raw?.length ?? 0))}...");
+
+              // Only call callback if we have meaningful attribution data
+              // Check if it's not just test data that was filtered out
+              if (attribution.raw != "Test data filtered out" ||
+                  attribution.attribution == true) {
+                onReadCallback(attribution);
+              } else {
+                print(
+                    "🎯 [DEBUG] Test data filtered out, not calling callback");
+              }
+            } else {
+              print("🎯 [DEBUG] Attribution data is NULL from Apple API");
+              // Don't call callback when attribution data is null, similar to C# code
+            }
+          } else {
+            print("❌ Attribution Token is null or empty");
+            // Don't call callback when token is null/empty, similar to C# code
+          }
         } else {
           final error = result['error'] ?? 'Unknown error';
           print("❌ Failed to get attribution token: $error");
-
-          // Return empty attribution on failure
-          final attribution = MetriqusAttribution();
-          attribution.attribution = false;
-          onReadCallback(attribution);
+          onError("Failed to get attribution token: $error");
         }
       } else {
         print("❌ Invalid attribution token response");
-        final attribution = MetriqusAttribution();
-        attribution.attribution = false;
-        onReadCallback(attribution);
+        onError("Invalid attribution token response");
       }
     } catch (e) {
       print("❌ Error Reading iOS Attribution: $e");
@@ -128,26 +151,22 @@ class MetriqusIOS extends MetriqusNative {
   void getInstallTime(Function(int) callback) {
     try {
       // Try to get from storage first
-      storage
-          ?.loadDataAsync(installTimeKey)
-          .then((storedTime) {
-            if (storedTime.isNotEmpty) {
-              final installTime =
-                  int.tryParse(storedTime) ??
-                  MetriqusUtils.getCurrentUtcTimestampSeconds();
-              callback(installTime);
-              return;
-            }
+      storage?.loadDataAsync(installTimeKey).then((storedTime) {
+        if (storedTime.isNotEmpty) {
+          final installTime = int.tryParse(storedTime) ??
+              MetriqusUtils.getCurrentUtcTimestampSeconds();
+          callback(installTime);
+          return;
+        }
 
-            // If not in storage, use current time as fallback
-            final installTime = MetriqusUtils.getCurrentUtcTimestampSeconds();
-            print("GetInstallTime: $installTime");
-            callback(installTime);
-          })
-          .catchError((error) {
-            print("Error reading install time from storage: $error");
-            callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
-          });
+        // If not in storage, use current time as fallback
+        final installTime = MetriqusUtils.getCurrentUtcTimestampSeconds();
+        print("GetInstallTime: $installTime");
+        callback(installTime);
+      }).catchError((error) {
+        print("Error reading install time from storage: $error");
+        callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+      });
     } catch (e) {
       print("Error getting iOS install time: $e");
       callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
@@ -194,7 +213,7 @@ class MetriqusIOS extends MetriqusNative {
   }
 
   /// Request attribution data from Apple Search Ads API using token
-  Future<MetriqusAttribution> _requestAttributionData(String token) async {
+  Future<MetriqusAttribution?> _requestAttributionData(String token) async {
     int attempts = 0;
     bool requestSuccessful = false;
 
@@ -242,7 +261,7 @@ class MetriqusIOS extends MetriqusNative {
             }
           }
 
-          return attribution ?? MetriqusAttribution();
+          return attribution;
         } else if (response.statusCode == 404) {
           print("⚠️ 404 Not Found. Retrying...");
           if (attempts < 3) {
@@ -274,10 +293,8 @@ class MetriqusIOS extends MetriqusNative {
       );
     }
 
-    // Return empty attribution on failure
-    final attribution = MetriqusAttribution();
-    attribution.attribution = false;
-    return attribution;
+    // Return null on failure, similar to C# code
+    return null;
   }
 
   /// Set install time in storage

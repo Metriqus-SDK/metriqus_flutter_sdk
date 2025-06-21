@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/services.dart';
@@ -8,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:dart_flutter_version/dart_flutter_version.dart';
 import '../Metriqus.dart';
 import '../Package/PackageModels/AppInfoPackage.dart';
+import 'MetriqusUtils.dart';
 
 /// Device information collector for Flutter
 class DeviceInfo {
@@ -50,55 +50,70 @@ class DeviceInfo {
       // Get device info
       final deviceInfoPlugin = DeviceInfoPlugin();
 
-      if (Platform.isAndroid) {
-        platform = 1;
-        final androidInfo = await deviceInfoPlugin.androidInfo;
-        deviceName = androidInfo.device;
-        deviceModel = '${androidInfo.brand} ${androidInfo.model}';
+      try {
+        if (MetriqusUtils.isAndroid) {
+          platform = 1;
+          final androidInfo = await deviceInfoPlugin.androidInfo;
+          deviceName = androidInfo.device;
+          deviceModel = '${androidInfo.brand} ${androidInfo.model}';
 
-        String buildDisplay = androidInfo.display ?? '';
-        osName =
-            'Android OS ${androidInfo.version.release} / API-${androidInfo.version.sdkInt}';
-        if (buildDisplay.isNotEmpty) {
-          osName += ' ($buildDisplay)';
+          String buildDisplay = androidInfo.display ?? '';
+          osName =
+              'Android OS ${androidInfo.version.release} / API-${androidInfo.version.sdkInt}';
+          if (buildDisplay.isNotEmpty) {
+            osName += ' ($buildDisplay)';
+          }
+
+          deviceId = androidInfo.id;
+          deviceType = _getAndroidDeviceType();
+          await _getGpuInfo();
+          await _getAdInfo();
+        } else if (MetriqusUtils.isIOS) {
+          platform = 0;
+          final iosInfo = await deviceInfoPlugin.iosInfo;
+          deviceName = iosInfo.model;
+          deviceModel = iosInfo.utsname.machine;
+
+          String systemName = iosInfo.systemName;
+          if (iosInfo.model.toLowerCase().contains('ipad')) {
+            systemName = 'iPadOS';
+          }
+          osName = '$systemName ${iosInfo.systemVersion}';
+
+          deviceId = iosInfo.identifierForVendor ?? '';
+          vendorId = iosInfo.identifierForVendor;
+          deviceType = _getIOSDeviceType(iosInfo.model);
+          await _getGpuInfo();
+          await _getAdInfo();
+        } else {
+          platform = -1;
+          deviceType = 'desktop';
+          osName = 'Unknown OS';
         }
-
-        deviceId = androidInfo.id;
-        deviceType = _getAndroidDeviceType();
-        await _getGpuInfo();
-        await _getAdInfo();
-      } else if (Platform.isIOS) {
-        platform = 0;
-        final iosInfo = await deviceInfoPlugin.iosInfo;
-        deviceName = iosInfo.model;
-        deviceModel = iosInfo.utsname.machine;
-
-        String systemName = iosInfo.systemName;
-        if (iosInfo.model.toLowerCase().contains('ipad')) {
-          systemName = 'iPadOS';
-        }
-        osName = '$systemName ${iosInfo.systemVersion}';
-
-        deviceId = iosInfo.identifierForVendor ?? '';
-        vendorId = iosInfo.identifierForVendor;
-        deviceType = _getIOSDeviceType(iosInfo.model);
-        await _getGpuInfo();
-        await _getAdInfo();
-      } else {
+      } catch (platformError) {
+        Metriqus.errorLog('Platform detection error: $platformError');
+        // Fallback values
         platform = -1;
-        deviceType = 'desktop';
-        osName = Platform.operatingSystem;
+        deviceType = 'unknown';
+        osName = 'Unknown OS';
+        deviceId = 'unknown';
       }
 
       // Get screen info from platform channel
       await _getScreenInfo();
 
       // Get system info
-      final localeLanguageCode = Platform.localeName.split('_')[0];
-      language = await _getLanguageDisplayName(localeLanguageCode);
-      country = Platform.localeName.contains('_')
-          ? Platform.localeName.split('_')[1]
-          : 'US';
+      try {
+        // Use Flutter's window.locale instead of Platform.localeName for better compatibility
+        final locale = PlatformDispatcher.instance.locale;
+        final localeLanguageCode = locale.languageCode;
+        language = await _getLanguageDisplayName(localeLanguageCode);
+        country = locale.countryCode ?? '';
+      } catch (localeError) {
+        Metriqus.errorLog('Locale detection error: $localeError');
+        language = 'English';
+        country = 'US';
+      }
     } catch (e) {
       Metriqus.errorLog('Error initializing device info: $e');
     }

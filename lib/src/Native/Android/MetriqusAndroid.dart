@@ -1,5 +1,7 @@
-import 'dart:io' show Platform;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import '../MetriqusNative.dart';
 import '../../MetriqusSettings.dart';
 import '../../Utilities/MetriqusUtils.dart';
@@ -13,7 +15,8 @@ class MetriqusAndroid extends MetriqusNative {
 
   @override
   Future<void> initSdk(MetriqusSettings settings) async {
-    if (!Platform.isAndroid) {
+    // Platform kontrolü - MetriqusUtils helper fonksiyonu ile güvenli şekilde
+    if (!MetriqusUtils.isAndroid) {
       Metriqus.errorLog("MetriqusAndroid can only be used on Android platform");
       return;
     }
@@ -117,7 +120,7 @@ class MetriqusAndroid extends MetriqusNative {
 
   @override
   void readAttribution(
-    Function(MetriqusAttribution) onReadCallback,
+    Function(MetriqusAttribution?) onReadCallback,
     Function(String) onError,
   ) async {
     try {
@@ -134,45 +137,12 @@ class MetriqusAndroid extends MetriqusNative {
 
         if (success) {
           final referrerUrl = result['referrerUrl'] ?? '';
-          Metriqus.verboseLog(
-            "✅ Android attribution referrer URL obtained: $referrerUrl",
-          );
-
-          // Parse referrer URL into MetriqusAttribution
-          final attribution = MetriqusAttribution.fromReferrerUrl(referrerUrl);
-
-          // Check if this is Meta UTM and decrypt if needed
-          if (MetaAttributionUtilities.isMetaUtm(attribution.source)) {
-            Metriqus.verboseLog("🔍 Meta UTM detected, decrypting...");
-
-            final decryptedReferrerUrl =
-                await MetaAttributionUtilities.decryptMetaUtm(
-                  attribution.content,
-                );
-
-            if (decryptedReferrerUrl != null &&
-                decryptedReferrerUrl.isNotEmpty) {
-              Metriqus.verboseLog("✅ Meta UTM decrypted successfully");
-              final metaAttribution = MetriqusAttribution.fromReferrerUrl(
-                decryptedReferrerUrl,
-              );
-              onReadCallback(metaAttribution);
-            } else {
-              Metriqus.verboseLog(
-                "❌ Meta UTM decryption failed, using original attribution",
-              );
-              onReadCallback(attribution);
-            }
-          } else {
-            onReadCallback(attribution);
-          }
+          await _onAttributionRead(referrerUrl, onReadCallback);
         } else {
           final error = result['error'] ?? 'Unknown error';
-          Metriqus.errorLog("❌ Failed to get Android attribution: $error");
-          onError("Failed to get Android attribution: $error");
+          onError(error);
         }
       } else {
-        Metriqus.errorLog("❌ Invalid Android attribution response");
         onError("Invalid Android attribution response");
       }
     } catch (e) {
@@ -181,58 +151,122 @@ class MetriqusAndroid extends MetriqusNative {
     }
   }
 
+  /// Handle attribution read callback, similar to C# AttributionReadListener.onAttributionRead
+  Future<void> _onAttributionRead(
+    String referrerUrl,
+    Function(MetriqusAttribution?) callback,
+  ) async {
+    try {
+      Metriqus.verboseLog(
+          "🎯 [DEBUG] Android referrer URL received: $referrerUrl");
+
+      // Check if referrer URL is empty or invalid
+      if (referrerUrl.isEmpty) {
+        Metriqus.verboseLog(
+            "🎯 [DEBUG] Empty referrer URL, not calling callback");
+        return; // Don't call callback for empty referrer URL
+      }
+
+      // Parse referrer URL into MetriqusAttribution
+      final attribution = MetriqusAttribution.fromReferrerUrl(referrerUrl);
+
+      Metriqus.verboseLog("🎯 [DEBUG] Android attribution parsed:");
+      Metriqus.verboseLog("  - source: ${attribution.source}");
+      Metriqus.verboseLog("  - medium: ${attribution.medium}");
+      Metriqus.verboseLog("  - campaign: ${attribution.campaign}");
+      Metriqus.verboseLog("  - raw: ${attribution.raw}");
+
+      // Check if attribution has any meaningful data
+      if (attribution.source == null &&
+          attribution.medium == null &&
+          attribution.campaign == null &&
+          attribution.term == null &&
+          attribution.content == null &&
+          (attribution.params == null || attribution.params!.isEmpty)) {
+        Metriqus.verboseLog(
+            "🎯 [DEBUG] No meaningful attribution data, not calling callback");
+        return; // Don't call callback for empty attribution data
+      }
+
+      // Check if this is Meta UTM and decrypt if needed
+      if (MetaAttributionUtilities.isMetaUtm(attribution.source)) {
+        Metriqus.verboseLog("🔍 Meta UTM detected, decrypting...");
+
+        final decryptedReferrerUrl =
+            await MetaAttributionUtilities.decryptMetaUtm(
+          attribution.content,
+        );
+
+        if (decryptedReferrerUrl != null && decryptedReferrerUrl.isNotEmpty) {
+          final metaAttribution = MetriqusAttribution.fromReferrerUrl(
+            decryptedReferrerUrl,
+          );
+          Metriqus.verboseLog(
+              "🎯 [DEBUG] Meta attribution decrypted and parsed");
+          callback(metaAttribution);
+        } else {
+          Metriqus.verboseLog(
+              "🎯 [DEBUG] Using original attribution (decrypt failed)");
+          callback(attribution);
+        }
+      } else {
+        Metriqus.verboseLog(
+            "🎯 [DEBUG] Using original attribution (not Meta UTM)");
+        callback(attribution);
+      }
+    } catch (e) {
+      Metriqus.errorLog("❌ Error processing attribution: $e");
+      callback(null);
+    }
+  }
+
   @override
   void getInstallTime(Function(int) callback) async {
     try {
       // Try to get from storage first
-      storage
-          ?.loadDataAsync(installTimeKey)
-          .then((storedTime) async {
-            if (storedTime.isNotEmpty) {
-              final installTime =
-                  int.tryParse(storedTime) ??
-                  MetriqusUtils.getCurrentUtcTimestampSeconds();
-              Metriqus.verboseLog(
-                "Android install time from storage: $installTime",
-              );
-              callback(installTime);
-              return;
-            }
+      storage?.loadDataAsync(installTimeKey).then((storedTime) async {
+        if (storedTime.isNotEmpty) {
+          final installTime = int.tryParse(storedTime) ??
+              MetriqusUtils.getCurrentUtcTimestampSeconds();
+          Metriqus.verboseLog(
+            "Android install time from storage: $installTime",
+          );
+          callback(installTime);
+          return;
+        }
 
-            // Get install time via native Android code
-            final platform = MethodChannel('metriqus_flutter_sdk/device_info');
-            final result = await platform.invokeMethod('getInstallTime');
+        // Get install time via native Android code
+        final platform = MethodChannel('metriqus_flutter_sdk/device_info');
+        final result = await platform.invokeMethod('getInstallTime');
 
-            if (result != null && result is Map) {
-              final success = result['success'] ?? false;
-              final installTime =
-                  result['installTime'] ??
-                  MetriqusUtils.getCurrentUtcTimestampSeconds();
+        if (result != null && result is Map) {
+          final success = result['success'] ?? false;
+          final installTime = result['installTime'] ??
+              MetriqusUtils.getCurrentUtcTimestampSeconds();
 
-              if (success) {
-                Metriqus.verboseLog(
-                  "✅ Android install time obtained: $installTime",
-                );
-                callback(installTime);
-              } else {
-                Metriqus.verboseLog(
-                  "❌ Failed to get Android install time, using current time",
-                );
-                callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
-              }
-            } else {
-              Metriqus.verboseLog(
-                "❌ Invalid Android install time response, using current time",
-              );
-              callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
-            }
-          })
-          .catchError((error) {
-            Metriqus.errorLog(
-              "Error reading install time from storage: $error",
+          if (success) {
+            Metriqus.verboseLog(
+              "✅ Android install time obtained: $installTime",
+            );
+            callback(installTime);
+          } else {
+            Metriqus.verboseLog(
+              "❌ Failed to get Android install time, using current time",
             );
             callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
-          });
+          }
+        } else {
+          Metriqus.verboseLog(
+            "❌ Invalid Android install time response, using current time",
+          );
+          callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+        }
+      }).catchError((error) {
+        Metriqus.errorLog(
+          "Error reading install time from storage: $error",
+        );
+        callback(MetriqusUtils.getCurrentUtcTimestampSeconds());
+      });
     } catch (e) {
       Metriqus.errorLog("Error getting Android install time: $e");
       callback(MetriqusUtils.getCurrentUtcTimestampSeconds());

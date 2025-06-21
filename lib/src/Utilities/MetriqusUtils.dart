@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:flutter/foundation.dart';
+
 /// Utility functions for Metriqus SDK
 class MetriqusUtils {
   static const String keySource = "utm_source";
@@ -60,9 +64,8 @@ class MetriqusUtils {
       });
     } catch (e) {
       // If parsing fails, try manual parsing
-      String query = queryString.startsWith('?')
-          ? queryString.substring(1)
-          : queryString;
+      String query =
+          queryString.startsWith('?') ? queryString.substring(1) : queryString;
       List<String> parameters = query.split('&');
 
       for (String param in parameters) {
@@ -155,5 +158,25 @@ class MetriqusUtils {
       // Return null if parsing fails
     }
     return null;
+  }
+
+  /// Check if current platform is iOS
+  static bool get isIOS {
+    try {
+      return defaultTargetPlatform == TargetPlatform.iOS;
+    } catch (e) {
+      // Fallback: assume iOS if we can't determine
+      return false;
+    }
+  }
+
+  /// Check if current platform is Android
+  static bool get isAndroid {
+    try {
+      return defaultTargetPlatform == TargetPlatform.android;
+    } catch (e) {
+      // Fallback: assume Android if we can't determine
+      return false;
+    }
   }
 }

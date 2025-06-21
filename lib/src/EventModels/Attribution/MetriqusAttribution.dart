@@ -53,41 +53,23 @@ class MetriqusAttribution {
       attribution.raw = attributionJsonString.replaceAll('"', ' ');
 
       // Parse iOS attribution data
-      attribution.attribution =
-          _tryParseBool(MetriqusJSON.getJsonString(jsonNode, "attribution"));
-      attribution.orgId =
-          _tryParseInt(MetriqusJSON.getJsonString(jsonNode, "orgId"));
-      attribution.campaignId =
-          _tryParseInt(MetriqusJSON.getJsonString(jsonNode, "campaignId"));
-      attribution.conversionType =
-          MetriqusJSON.getJsonString(jsonNode, "conversionType");
-      attribution.clickDate = MetriqusJSON.getJsonString(jsonNode, "clickDate");
-      attribution.claimType = MetriqusJSON.getJsonString(jsonNode, "claimType");
-      attribution.adGroupId =
-          _tryParseInt(MetriqusJSON.getJsonString(jsonNode, "adGroupId"));
-      attribution.countryOrRegion =
-          MetriqusJSON.getJsonString(jsonNode, "countryOrRegion");
-      attribution.keywordId =
-          _tryParseInt(MetriqusJSON.getJsonString(jsonNode, "keywordId"));
-      attribution.adId =
-          _tryParseInt(MetriqusJSON.getJsonString(jsonNode, "adId"));
+      // Use jsonNode.data directly since it's already parsed JSON
+      final jsonData = jsonNode.data;
 
-      // Validate and filter test/placeholder values
-      if (_isTestData(attribution)) {
-        print("⚠️ Detected test/placeholder attribution data, filtering out");
-        // Return attribution with only valid non-test fields
-        final cleanedAttribution = MetriqusAttribution();
-        cleanedAttribution.raw = "Test data filtered out";
-        cleanedAttribution.attribution = false; // Mark as no real attribution
-        cleanedAttribution.countryOrRegion =
-            attribution.countryOrRegion; // Keep country if valid
-        cleanedAttribution.conversionType =
-            attribution.conversionType; // Keep conversion type
-        cleanedAttribution.clickDate = attribution.clickDate; // Keep click date
-        cleanedAttribution.claimType = attribution.claimType; // Keep claim type
-        return cleanedAttribution;
+      if (jsonData is Map<String, dynamic>) {
+        attribution.attribution =
+            _tryParseBool(jsonData["attribution"]?.toString());
+        attribution.orgId = _tryParseInt(jsonData["orgId"]?.toString());
+        attribution.campaignId =
+            _tryParseInt(jsonData["campaignId"]?.toString());
+        attribution.conversionType = jsonData["conversionType"]?.toString();
+        attribution.clickDate = jsonData["clickDate"]?.toString();
+        attribution.claimType = jsonData["claimType"]?.toString();
+        attribution.adGroupId = _tryParseInt(jsonData["adGroupId"]?.toString());
+        attribution.countryOrRegion = jsonData["countryOrRegion"]?.toString();
+        attribution.keywordId = _tryParseInt(jsonData["keywordId"]?.toString());
+        attribution.adId = _tryParseInt(jsonData["adId"]?.toString());
       }
-
       return attribution;
     } catch (e) {
       return null;
@@ -97,18 +79,24 @@ class MetriqusAttribution {
   /// Parses and assigns values from a dictionary of attribution data (Android)
   void _parseDict(
       Map<String, String>? dictAttributionData, String referrerUrl) {
-    if (dictAttributionData == null || referrerUrl.isEmpty) return;
+    if (dictAttributionData == null || referrerUrl.isEmpty) {
+      return;
+    }
 
     raw = referrerUrl.replaceAll('"', ' ');
 
     source =
         MetriqusUtils.tryGetValue(dictAttributionData, MetriqusUtils.keySource);
+
     medium =
         MetriqusUtils.tryGetValue(dictAttributionData, MetriqusUtils.keyMedium);
+
     campaign = MetriqusUtils.tryGetValue(
         dictAttributionData, MetriqusUtils.keyCampaign);
+
     term =
         MetriqusUtils.tryGetValue(dictAttributionData, MetriqusUtils.keyTerm);
+
     content = MetriqusUtils.tryGetValue(
         dictAttributionData, MetriqusUtils.keyContent);
 

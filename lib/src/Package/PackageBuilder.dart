@@ -184,24 +184,78 @@ class PackageBuilder {
 
     final attributionParams = <String, List<DynamicParameter>>{};
 
-    if (Platform.isIOS) {
+    if (MetriqusUtils.isIOS) {
       attributionParams["ios"] = <DynamicParameter>[];
-      _addBoolean(
-        attributionParams["ios"]!,
-        "attribution",
-        attribution.attribution,
-      );
-      _addString(attributionParams["ios"]!, "raw", attribution.raw);
-    } else if (Platform.isAndroid) {
+
+      // iOS-specific attribution fields (normal parameters) - exclude raw
+      _addBooleanAlways(
+          attributionParams["ios"]!, "attribution", attribution.attribution);
+      _addIntegerAlways(attributionParams["ios"]!, "org_id", attribution.orgId);
+      _addIntegerAlways(
+          attributionParams["ios"]!, "campaign_id", attribution.campaignId);
+      _addStringAlways(attributionParams["ios"]!, "conversion_type",
+          attribution.conversionType);
+      _addStringAlways(
+          attributionParams["ios"]!, "click_date", attribution.clickDate);
+      _addStringAlways(
+          attributionParams["ios"]!, "claim_type", attribution.claimType);
+      _addIntegerAlways(
+          attributionParams["ios"]!, "ad_group_id", attribution.adGroupId);
+      _addStringAlways(attributionParams["ios"]!, "country_or_region",
+          attribution.countryOrRegion);
+      _addIntegerAlways(
+          attributionParams["ios"]!, "keyword_id", attribution.keywordId);
+      _addIntegerAlways(
+          attributionParams["ios"]!, "attribution_ad_id", attribution.adId);
+
+      // Create params as key-value array with only raw data
+      final iOSAttributionParamsArray = <Map<String, dynamic>>[];
+      _addToKeyValueArray(iOSAttributionParamsArray, "raw", attribution.raw);
+
+      // Add params as key-value array
+      attributionParams["ios"]!
+          .add(DynamicParameter("params", iOSAttributionParamsArray));
+    } else if (MetriqusUtils.isAndroid) {
       attributionParams["android"] = <DynamicParameter>[];
-      _addString(attributionParams["android"]!, "source", attribution.source);
-      _addString(attributionParams["android"]!, "medium", attribution.medium);
-      _addString(
-        attributionParams["android"]!,
-        "campaign",
-        attribution.campaign,
-      );
-      _addString(attributionParams["android"]!, "raw", attribution.raw);
+
+      // Android-specific attribution fields (normal parameters) - exclude raw
+      _addStringAlways(
+          attributionParams["android"]!, "source", attribution.source);
+      _addStringAlways(
+          attributionParams["android"]!, "medium", attribution.medium);
+      _addStringAlways(
+          attributionParams["android"]!, "campaign", attribution.campaign);
+      _addStringAlways(attributionParams["android"]!, "term", attribution.term);
+      _addStringAlways(
+          attributionParams["android"]!, "content", attribution.content);
+
+      // Add custom parameters if available
+      if (attribution.params != null && attribution.params!.isNotEmpty) {
+        for (final param in attribution.params!) {
+          if (param.value is String) {
+            _addString(attributionParams["android"]!, param.name,
+                param.value as String);
+          } else if (param.value is int) {
+            _addInteger(
+                attributionParams["android"]!, param.name, param.value as int);
+          } else if (param.value is double) {
+            _addFloat(attributionParams["android"]!, param.name,
+                param.value as double);
+          } else if (param.value is bool) {
+            _addBoolean(
+                attributionParams["android"]!, param.name, param.value as bool);
+          }
+        }
+      }
+
+      // Create params as key-value array with only raw data
+      final androidAttributionParamsArray = <Map<String, dynamic>>[];
+      _addToKeyValueArray(
+          androidAttributionParamsArray, "raw", attribution.raw);
+
+      // Add params as key-value array
+      attributionParams["android"]!
+          .add(DynamicParameter("params", androidAttributionParamsArray));
     }
 
     package.attribution = attributionParams;
@@ -389,19 +443,31 @@ class PackageBuilder {
       // User attributes - get directly from native during initialization
       final userAttributesMap = native?.userAttributes?.getAllAttributes();
       if (userAttributesMap != null && userAttributesMap.isNotEmpty) {
-        final userAttributesList = <TypedParameter>[];
-        userAttributesMap.forEach((key, value) {
-          if (value is String) {
-            userAttributesList.add(TypedParameter.string(key, value));
-          } else if (value is int) {
-            userAttributesList.add(TypedParameter.int(key, value));
-          } else if (value is double) {
-            userAttributesList.add(TypedParameter.double(key, value));
-          } else if (value is bool) {
-            userAttributesList.add(TypedParameter.bool(key, value));
+        final userAttributesArray = userAttributesMap.entries.map((entry) {
+          final Map<String, dynamic> valueMap = {};
+
+          // Set appropriate value field based on type
+          if (entry.value is String) {
+            valueMap['string_value'] = entry.value as String;
+          } else if (entry.value is int) {
+            valueMap['int_value'] = entry.value as int;
+          } else if (entry.value is double) {
+            valueMap['float_value'] = entry.value as double;
+          } else if (entry.value is bool) {
+            valueMap['bool_value'] = entry.value as bool;
           }
-        });
-        package.userAttributes = userAttributesList;
+
+          return {
+            'key': entry.key,
+            'value': valueMap,
+          };
+        }).toList();
+
+        // Store as DynamicParameter array like item_params
+        final userPropertiesParameters = <DynamicParameter>[];
+        userPropertiesParameters
+            .add(DynamicParameter("user_properties_data", userAttributesArray));
+        package.userAttributes = userPropertiesParameters;
       }
     } catch (e) {
       // Fallback values if something goes wrong
@@ -454,10 +520,43 @@ class PackageBuilder {
     }
   }
 
+  // Always add methods for attribution fields that BigQuery expects
+  void _addIntegerAlways(List<DynamicParameter> list, String key, int? value) {
+    list.add(DynamicParameter(key, value));
+  }
+
+  void _addBooleanAlways(List<DynamicParameter> list, String key, bool? value) {
+    list.add(DynamicParameter(key, value));
+  }
+
   void _addStringAlways(
       List<DynamicParameter> list, String key, String? value) {
     // Always add the parameter, even if null or empty
     list.add(DynamicParameter(key, value ?? ""));
+  }
+
+  /// Helper method for adding parameters to key-value array format (like itemParams)
+  void _addToKeyValueArray(
+      List<Map<String, dynamic>> array, String key, dynamic value) {
+    if (value != null) {
+      final Map<String, dynamic> valueMap = {};
+
+      // Set appropriate value field based on type
+      if (value is String) {
+        valueMap['string_value'] = value;
+      } else if (value is int) {
+        valueMap['int_value'] = value;
+      } else if (value is double) {
+        valueMap['float_value'] = value;
+      } else if (value is bool) {
+        valueMap['bool_value'] = value;
+      }
+
+      array.add({
+        'key': key,
+        'value': valueMap,
+      });
+    }
   }
 }
 
@@ -480,7 +579,7 @@ class Package {
   List<DynamicParameter>? publisher;
   Map<String, List<DynamicParameter>>? attribution;
   List<TypedParameter>? parameters;
-  List<TypedParameter>? userAttributes;
+  List<DynamicParameter>? userAttributes;
   List<DynamicParameter>? eventParams;
 
   /// Default constructor
@@ -539,9 +638,7 @@ class Package {
       'parameters': parameters
           ?.map((param) => {'name': param.name, 'value': param.value})
           .toList(),
-      'userAttributes': userAttributes
-          ?.map((param) => {'name': param.name, 'value': param.value})
-          .toList(),
+      'userAttributes': userAttributes?.map((param) => param.toJson()).toList(),
       'eventParams': eventParams?.map((param) => param.toJson()).toList(),
     };
   }

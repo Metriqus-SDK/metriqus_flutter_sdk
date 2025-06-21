@@ -125,7 +125,7 @@ abstract class MetriqusNative {
       _processIsFirstLaunch();
       _processSession();
 
-      // Process attribution asynchronously to avoid blocking initialization
+      // Process attribution asynchronously - this will handle all attribution logic
       Future.delayed(Duration(milliseconds: 100), () {
         _processAttribution();
       });
@@ -147,7 +147,7 @@ abstract class MetriqusNative {
   /// Abstract methods to be implemented by platform-specific classes
   void readAdid(Function(String) callback);
   void readAttribution(
-    Function(MetriqusAttribution) onReadCallback,
+    Function(MetriqusAttribution?) onReadCallback,
     Function(String) onError,
   );
   void getInstallTime(Function(int) callback);
@@ -215,7 +215,14 @@ abstract class MetriqusNative {
   }
 
   void onQuit() {
-    // Handle app quit
+    Metriqus.verboseLog("Application quitting. Disposing resources.");
+    dispose();
+  }
+
+  /// Dispose all native resources
+  void dispose() {
+    _packageSender?.dispose();
+    Metriqus.verboseLog("Native resources disposed.");
   }
 
   /// Process session logic
@@ -283,12 +290,10 @@ abstract class MetriqusNative {
   /// Process attribution logic
   void _processAttribution() {
     try {
-      Metriqus.verboseLog("🎯 [ATTRIBUTION] Starting process attribution");
-
       // Cancel attribution if tracking disabled
       if (!isTrackingEnabled) {
         Metriqus.infoLog(
-          "🎯 [ATTRIBUTION] ProcessAttribution canceled: user not allowed tracking",
+          "ProcessAttribution canceled: user not allowed tracking",
         );
         return;
       }
@@ -296,7 +301,7 @@ abstract class MetriqusNative {
       // Cancel attribution on iOS platform if tracking disabled
       if (metriqusSettings?.iOSUserTrackingDisabled == true) {
         Metriqus.infoLog(
-          "🎯 [ATTRIBUTION] ProcessAttribution canceled: iOS User Tracking Disabled",
+          "ProcessAttribution canceled: iOS User Tracking Disabled",
         );
         return;
       }
@@ -304,30 +309,18 @@ abstract class MetriqusNative {
       DateTime currentDate = MetriqusUtils.timestampSecondsToDateTime(
         MetriqusUtils.getCurrentUtcTimestampSeconds(),
       );
-      Metriqus.verboseLog("🎯 [ATTRIBUTION] Current date: $currentDate");
 
       void sendAttr() {
-        Metriqus.verboseLog(
-          "🎯 [ATTRIBUTION] Starting attribution send process",
-        );
         readAttribution(
           (attribution) {
-            Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Attribution data received, sending package",
-            );
-            _packageSender?.sendAttributionPackage(attribution);
-
-            final dateString = _convertDateToString(currentDate);
-            Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Saving attribution date: $dateString",
-            );
-            storage!.saveData(lastSendAttributionDateKey, dateString);
-            Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Attribution date saved successfully",
-            );
+            if (attribution != null) {
+              _packageSender?.sendAttributionPackage(attribution);
+              storage!.saveData(lastSendAttributionDateKey,
+                  _convertDateToString(currentDate));
+            }
           },
           (error) {
-            Metriqus.errorLog("❌ [ATTRIBUTION] Attribution read error: $error");
+            Metriqus.errorLog("Attribution read error: $error");
           },
         );
       }
@@ -336,68 +329,37 @@ abstract class MetriqusNative {
         DateTime installDate = MetriqusUtils.timestampSecondsToDateTime(
           installTime,
         );
-        Metriqus.verboseLog("🎯 [ATTRIBUTION] Install date: $installDate");
 
-        Metriqus.verboseLog(
-          "🎯 [ATTRIBUTION] Checking if attribution date key exists: $lastSendAttributionDateKey",
-        );
         bool lastSendAttributionDateExist = storage!.checkKeyExist(
           lastSendAttributionDateKey,
         );
-        Metriqus.verboseLog(
-          "🎯 [ATTRIBUTION] Key exists: $lastSendAttributionDateExist",
-        );
 
         var remoteSettings = getMetriqusRemoteSettings();
-        Metriqus.verboseLog(
-          "🎯 [ATTRIBUTION] Attribution window: ${remoteSettings.attributionCheckWindow} days",
-        );
 
         int daysSinceInstall = currentDate.difference(installDate).inDays;
-        Metriqus.verboseLog(
-          "🎯 [ATTRIBUTION] Days since install: $daysSinceInstall",
-        );
 
+        // C# Unity SDK attribution logic - exact match
         if (daysSinceInstall < remoteSettings.attributionCheckWindow) {
           // if it has been less than attribution window days, send attribution
-          Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Within attribution window, sending attribution",
-          );
           sendAttr();
         } else if (!lastSendAttributionDateExist) {
-          // if didn't send any attribution, send it
-          Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] No previous attribution sent, sending attribution",
-          );
+          // if didnt send any attribution send it
           sendAttr();
         } else {
-          // if last attribution send date before window and now it passed
-          // window, send last one more time
-          Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Checking last attribution send date",
-          );
+          // if last attribution send date before attribution window days and now it passed
+          // attribution window days send last one more time
           String lastAttributionDateStr = storage!.loadData(
             lastSendAttributionDateKey,
           );
           DateTime lastAttributionDate = _parseDate(lastAttributionDateStr);
 
-          int daysSinceLastAttribution =
+          int daysSinceInstallWhenLastSent =
               lastAttributionDate.difference(installDate).inDays;
-          Metriqus.verboseLog(
-            "🎯 [ATTRIBUTION] Days since last attribution: $daysSinceLastAttribution",
-          );
 
-          if (daysSinceLastAttribution <
+          if (daysSinceInstallWhenLastSent <
                   remoteSettings.attributionCheckWindow &&
-              daysSinceInstall > remoteSettings.attributionCheckWindow) {
-            Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Sending final attribution after window",
-            );
+              daysSinceInstall >= remoteSettings.attributionCheckWindow) {
             sendAttr();
-          } else {
-            Metriqus.verboseLog(
-              "🎯 [ATTRIBUTION] Attribution conditions not met, skipping",
-            );
           }
         }
       });

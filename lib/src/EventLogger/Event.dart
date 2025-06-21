@@ -20,7 +20,7 @@ class Event {
   String? environment;
 
   List<TypedParameter>? parameters;
-  List<TypedParameter>? userAttributes;
+  List<DynamicParameter>? userAttributes;
   List<DynamicParameter>? device;
   List<DynamicParameter>? geolocation;
   AppInfoPackage? appInfo;
@@ -130,9 +130,18 @@ class Event {
       eventMap['event_params'] = TypedParameter.toSimpleMap(parameters!);
     }
 
-    // Add user attributes
-    if (userAttributes != null) {
-      eventMap['user_properties'] = TypedParameter.toSimpleMap(userAttributes!);
+    // Add user attributes as array
+    if (userAttributes != null && userAttributes!.isNotEmpty) {
+      // Check if this contains structured user properties data
+      final firstParam = userAttributes!.first;
+      if (firstParam.name == "user_properties_data" &&
+          firstParam.value is List) {
+        // Extract the structured array directly
+        eventMap['user_properties'] = firstParam.value;
+      } else {
+        // Fallback to standard parameter mapping
+        eventMap['user_properties'] = _dynamicParametersToMap(userAttributes!);
+      }
     }
 
     // Add custom event parameters as array
@@ -226,8 +235,15 @@ class Event {
 
       // Parse user attributes
       if (data['user_properties'] != null) {
-        event.userAttributes =
-            TypedParameter.deserializeList(data['user_properties']);
+        // Since user_properties now comes as array format, convert to DynamicParameter
+        if (data['user_properties'] is List) {
+          event.userAttributes = [
+            DynamicParameter("user_properties_data", data['user_properties'])
+          ];
+        } else {
+          event.userAttributes =
+              _parseMapToDynamicParameters(data['user_properties']);
+        }
       }
 
       return event;
@@ -271,7 +287,7 @@ class Package {
   final List<DynamicParameter>? item;
   final Map<String, List<DynamicParameter>>? attribution;
   final List<TypedParameter>? parameters;
-  final List<TypedParameter>? userAttributes;
+  final List<DynamicParameter>? userAttributes;
   final List<DynamicParameter>? eventParams;
 
   Package({

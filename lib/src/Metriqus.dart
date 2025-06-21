@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
@@ -22,6 +21,7 @@ import 'EventModels/CustomEvents/LevelProgression/MetriqusLevelCompletedEvent.da
 import 'EventModels/CustomEvents/MetriqusItemUsedEvent.dart';
 import 'EventModels/CustomEvents/MetriqusCampaignActionEvent.dart';
 import 'Package/PackageModels/AppInfoPackage.dart';
+import 'EventLogger/MetriqusLogger.dart';
 
 /// Main Metriqus SDK class for Flutter
 class Metriqus {
@@ -60,10 +60,10 @@ class Metriqus {
       print("🔧 Settings configured");
 
       // Create platform-specific native implementation
-      if (Platform.isIOS) {
+      if (MetriqusUtils.isIOS) {
         _native = MetriqusIOS();
         print("🔧 iOS native instance created");
-      } else if (Platform.isAndroid) {
+      } else if (MetriqusUtils.isAndroid) {
         _native = MetriqusAndroid();
         print("🔧 Android native instance created");
       } else {
@@ -339,7 +339,7 @@ class Metriqus {
   static void updateIOSConversionValue(int value) {
     if (!_checkInitialization()) return;
 
-    if (Platform.isIOS) {
+    if (MetriqusUtils.isIOS) {
       verboseLog("🍎 Updating iOS conversion value: $value");
       _native!.updateIOSConversionValue(value);
     }
@@ -484,6 +484,7 @@ class Metriqus {
 
   /// Dispose resources
   static void dispose() {
+    MetriqusLogger.dispose();
     _onLogController.close();
     _onSdkInitializeController.close();
     _isInitialized = false;

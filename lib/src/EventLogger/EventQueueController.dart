@@ -10,6 +10,7 @@ import '../Utilities/MetriqusUtils.dart';
 import '../Metriqus.dart';
 
 import '../ThirdParty/SimpleJSON.dart';
+import 'dart:async';
 
 /// Stores event in a queue. Responsible for storing and flushing queue when conditions are met.
 class EventQueueController implements IEventQueueController {
@@ -25,6 +26,8 @@ class EventQueueController implements IEventQueueController {
 
   EventQueue get events => _eventQueue;
 
+  Timer? _flushTimer;
+
   EventQueueController(this._storage) {
     _loadEventsToSend();
 
@@ -39,6 +42,7 @@ class EventQueueController implements IEventQueueController {
     } catch (e) {
       _eventQueue = EventQueue();
     }
+    _startFlushTimer();
   }
 
   /// Add event to queue
@@ -555,5 +559,26 @@ class EventQueueController implements IEventQueueController {
       Metriqus.errorLog("LoadEventsToSend failed : ${ex.toString()}");
       _eventsToSend.clear();
     }
+  }
+
+  void _startFlushTimer() {
+    // Ensure timer only runs once
+    if (_flushTimer != null && _flushTimer!.isActive) {
+      return;
+    }
+
+    _flushTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        _checkQueueStatus(false);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    Metriqus.verboseLog("EventQueueController disposed and timer cancelled.");
   }
 }

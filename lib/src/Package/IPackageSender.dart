@@ -11,4 +11,5 @@ abstract class IPackageSender {
   Future<void> sendIAPEventPackage(MetriqusInAppRevenue metriqusEvent);
   Future<void> sendAdRevenuePackage(MetriqusAdRevenue adRevenue);
   Future<void> sendAttributionPackage(MetriqusAttribution attribution);
+  void dispose();
 }

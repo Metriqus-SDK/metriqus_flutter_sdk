@@ -1,25 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:metriqus_flutter_sdk/metriqus_flutter_sdk.dart';
-import 'package:metriqus_flutter_sdk/src/Utilities/MetriqusUtils.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Metriqus SDK with new constructor
-  final settings = MetriqusSettings(
-    clientKey: 'bwwknjmjelo2klmu',
-    clientSecret: 'bIrlx2M61pUZ7PzZ0SXTqnFAtIqBT7wM',
-    environment: Environment.sandbox,
-    logLevel: LogLevel.verbose,
-  );
-
-  await Metriqus.initSdk(settings);
-
-  runApp(const MyApp());
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    runApp(const MyApp());
+  } catch (e) {
+    print('❌ Error in main(): $e');
+    runApp(const MyApp());
+  }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initSDK();
+  }
+
+  void _initSDK() {
+    final settings = MetriqusSettings(
+      clientKey: 'bwwknjmjelo2klmu',
+      clientSecret: 'bIrlx2M61pUZ7PzZ0SXTqnFAtIqBT7wM',
+      environment: Environment.sandbox,
+      logLevel: LogLevel.verbose,
+    );
+
+    Metriqus.initSdk(settings);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        Metriqus.onResume();
+        break;
+      case AppLifecycleState.inactive:
+        Metriqus.onPause();
+        break;
+      case AppLifecycleState.paused:
+        Metriqus.onPause();
+        break;
+      case AppLifecycleState.detached:
+        Metriqus.onQuit();
+        break;
+      case AppLifecycleState.hidden:
+        Metriqus.onPause();
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +225,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _trackAdRevenue() {
     _setLoading();
     final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD');
-    adRevenue.source = 'metriqus'; // Set source as parameter
+    adRevenue.source = 'metriqus';
     adRevenue.adRevenueUnit = 'banner_main_001';
     adRevenue.adRevenueNetwork = 'AdMob';
     adRevenue.adRevenuePlacement = 'main_screen';
@@ -242,11 +286,6 @@ class _MyHomePageState extends State<MyHomePage> {
     Metriqus.setUserAttribute(
         TypedParameter.string('favorite_character', 'mage'));
     Metriqus.setUserAttribute(TypedParameter.string('guild_id', 'guild_123'));
-    Metriqus.setUserAttribute(TypedParameter.string(
-        'last_login',
-        MetriqusUtils.timestampSecondsToDateTime(
-          MetriqusUtils.getCurrentUtcTimestampSeconds(),
-        ).toIso8601String()));
     _updateStatus('✅ User Attributes Set: 7 attributes (Premium Level 25)');
   }
 
