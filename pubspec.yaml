@@ -1,6 +1,10 @@
 name: metriqus_flutter_sdk
 description: "Metriqus Flutter SDK"
 version: 1.0.0
+homepage: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk
+repository: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk
+issue_tracker: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk/issues
+documentation: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk#readme
 
 
 topics:

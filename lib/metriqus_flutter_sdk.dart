@@ -75,7 +75,7 @@ export 'src/Utilities/MetriqusEnvironment.dart';
 export 'src/Utilities/UniqueUserIdentifier.dart';
 export 'src/Utilities/Backoff.dart';
 export 'src/Utilities/InternetConnectionChecker.dart';
-export 'src/Utilities/IPGeolocation.dart' hide MetriqusResponseObject;
+export 'src/Utilities/IPGeolocation.dart';
 
 // Storage
 export 'src/Storage/IStorage.dart';
@@ -83,16 +83,7 @@ export 'src/Storage/Storage.dart';
 
 // Native
 export 'src/Native/UserAttributes.dart';
-export 'src/Native/MetriqusNative.dart'
-    hide
-        InternetConnectionChecker,
-        Storage,
-        EncryptedStorageHandler,
-        MetriqusLogger,
-        Metriqus,
-        RequestSender,
-        HttpResponse,
-        MetriqusResponseObject;
+export 'src/Native/MetriqusNative.dart';
 export 'src/Native/Android/MetriqusAndroid.dart';
 export 'src/Native/iOS/MetriqusIOS.dart';
 
