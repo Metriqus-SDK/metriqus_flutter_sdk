@@ -1,6 +1,6 @@
 name: metriqus_example
 description: Example app demonstrating Metriqus Flutter SDK usage
-version: 1.0.0+1
+version: 1.0.1+1
 
 publish_to: 'none'
 
