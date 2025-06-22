@@ -34,7 +34,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     Metriqus.onSdkInitialize.listen((isInitialized) {
       print(
-          '🔧 Metriqus SDK Initialization: ${isInitialized ? 'SUCCESS' : 'FAILED'}');
+        '🔧 Metriqus SDK Initialization: ${isInitialized ? 'SUCCESS' : 'FAILED'}',
+      );
     });
   }
 
@@ -42,8 +43,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     print('🚀 Starting Metriqus SDK initialization...');
 
     final settings = MetriqusSettings(
-      clientKey: 'bwwknjmjelo2klmu',
-      clientSecret: 'bIrlx2M61pUZ7PzZ0SXTqnFAtIqBT7wM',
+      clientKey: 'YOUR CLIENT KEY',
+      clientSecret: 'YOUR CLIENT SECRET',
       environment: Environment.sandbox,
       logLevel: LogLevel.noLog,
     );
@@ -157,7 +158,8 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
 
     iapRevenue.setTransactionId(
-        'txn_${MetriqusUtils.getCurrentUtcTimestampSeconds()}');
+      'txn_${MetriqusUtils.getCurrentUtcTimestampSeconds()}',
+    );
     Metriqus.trackIAPEvent(iapRevenue);
     _updateStatus('✅ IAP Event Tracked: Premium Upgrade \$4.99 USD');
   }
@@ -166,11 +168,16 @@ class _MyHomePageState extends State<MyHomePage> {
   void _trackCustomEvent() {
     _setLoading();
     final customEvent = MetriqusCustomEvent('button_clicked');
-    customEvent
-        .addParameter(TypedParameter.string('button_name', 'play_button'));
+    customEvent.addParameter(
+      TypedParameter.string('button_name', 'play_button'),
+    );
     customEvent.addParameter(TypedParameter.string('screen', 'main_menu'));
-    customEvent.addParameter(TypedParameter.int(
-        'timestamp', MetriqusUtils.getCurrentUtcTimestampSeconds()));
+    customEvent.addParameter(
+      TypedParameter.int(
+        'timestamp',
+        MetriqusUtils.getCurrentUtcTimestampSeconds(),
+      ),
+    );
     customEvent.addParameter(TypedParameter.int('user_level', 5));
     customEvent.addParameter(TypedParameter.string('test', 'test'));
     customEvent.addParameter(TypedParameter.bool('test', true));
@@ -280,7 +287,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void _trackCampaignAction() {
     _setLoading();
     final campaignEvent = MetriqusCampaignActionEvent(
-        'summer_2024', 'variant_a', MetriqusCampaignActionType.click);
+      'summer_2024',
+      'variant_a',
+      MetriqusCampaignActionType.click,
+    );
 
     Metriqus.trackCampaignAction(campaignEvent);
     _updateStatus('✅ Campaign Action Tracked: Summer 2024 banner clicked');
@@ -302,7 +312,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Metriqus.setUserAttribute(TypedParameter.string('user_type', 'premium'));
     Metriqus.setUserAttribute(TypedParameter.int('total_score', 15000));
     Metriqus.setUserAttribute(
-        TypedParameter.string('favorite_character', 'mage'));
+      TypedParameter.string('favorite_character', 'mage'),
+    );
     Metriqus.setUserAttribute(TypedParameter.string('guild_id', 'guild_123'));
     _updateStatus('✅ User Attributes Set: 7 attributes (Premium Level 25)');
   }
@@ -314,7 +325,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final count = attributes?.length ?? 0;
     final hasData = count > 0;
     _updateStatus(
-        '✅ User Attributes Retrieved: $count attributes ${hasData ? 'found' : '(none set)'}');
+      '✅ User Attributes Retrieved: $count attributes ${hasData ? 'found' : '(none set)'}',
+    );
   }
 
   // removeUserAttribute Function
@@ -328,8 +340,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getAdid() {
     _setLoading();
     final adid = Metriqus.getAdid();
-    final shortAdid =
-        adid != null ? '${adid.substring(0, 8)}...' : 'Not available';
+    final shortAdid = adid != null
+        ? '${adid.substring(0, 8)}...'
+        : 'Not available';
     _updateStatus('✅ Advertising ID Retrieved: $shortAdid');
   }
 
@@ -339,15 +352,17 @@ class _MyHomePageState extends State<MyHomePage> {
     final deviceInfo = Metriqus.getDeviceInfo();
     final hasInfo = deviceInfo != null;
     _updateStatus(
-        '✅ Device Info Retrieved: ${hasInfo ? 'Device data loaded' : 'No data available'}');
+      '✅ Device Info Retrieved: ${hasInfo ? 'Device data loaded' : 'No data available'}',
+    );
   }
 
   // getUserId Function
   void _getUniqueUserId() {
     _setLoading();
     final userId = Metriqus.getUserId();
-    final shortUserId =
-        userId != null ? '${userId.substring(0, 8)}...' : 'Not available';
+    final shortUserId = userId != null
+        ? '${userId.substring(0, 8)}...'
+        : 'Not available';
     _updateStatus('✅ User ID Retrieved: $shortUserId');
   }
 
@@ -355,8 +370,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getSessionId() {
     _setLoading();
     final sessionId = Metriqus.getSessionId();
-    final shortSessionId =
-        sessionId != null ? '${sessionId.substring(0, 8)}...' : 'Not available';
+    final shortSessionId = sessionId != null
+        ? '${sessionId.substring(0, 8)}...'
+        : 'Not available';
     _updateStatus('✅ Session ID Retrieved: $shortSessionId');
   }
 
@@ -366,7 +382,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final geolocation = Metriqus.getGeolocation();
     final hasLocation = geolocation != null;
     _updateStatus(
-        '✅ Geolocation Retrieved: ${hasLocation ? 'Location data loaded' : 'No location data'}');
+      '✅ Geolocation Retrieved: ${hasLocation ? 'Location data loaded' : 'No location data'}',
+    );
   }
 
   // isFirstLaunch Function
@@ -374,7 +391,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _setLoading();
     final isFirstLaunch = Metriqus.isFirstLaunch();
     _updateStatus(
-        '✅ First Launch Check: ${isFirstLaunch ? 'This is first launch' : 'Not first launch'}');
+      '✅ First Launch Check: ${isFirstLaunch ? 'This is first launch' : 'Not first launch'}',
+    );
   }
 
   // getUserFirstTouchTimestamp Function
@@ -383,7 +401,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final timestamp = Metriqus.getUserFirstTouchTimestamp();
     final hasTimestamp = timestamp != null;
     _updateStatus(
-        '✅ First Touch Timestamp: ${hasTimestamp ? 'Timestamp retrieved' : 'No timestamp available'}');
+      '✅ First Touch Timestamp: ${hasTimestamp ? 'Timestamp retrieved' : 'No timestamp available'}',
+    );
   }
 
   // isInitialized Function
@@ -392,7 +411,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final isInitialized = Metriqus.isInitialized;
     print('🔍 SDK Initialization Check: $isInitialized');
     _updateStatus(
-        '✅ SDK Initialization Status: ${isInitialized ? 'SDK is initialized' : 'SDK not initialized'}');
+      '✅ SDK Initialization Status: ${isInitialized ? 'SDK is initialized' : 'SDK not initialized'}',
+    );
   }
 
   // isTrackingEnabled Function
@@ -400,7 +420,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _setLoading();
     final isTrackingEnabled = Metriqus.isTrackingEnabled;
     _updateStatus(
-        '✅ Tracking Status: ${isTrackingEnabled ? 'Tracking is enabled' : 'Tracking is disabled'}');
+      '✅ Tracking Status: ${isTrackingEnabled ? 'Tracking is enabled' : 'Tracking is disabled'}',
+    );
   }
 
   // getMetriqusSettings Function
@@ -409,7 +430,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final settings = Metriqus.getMetriqusSettings();
     final hasSettings = settings != null;
     _updateStatus(
-        '✅ SDK Settings Retrieved: ${hasSettings ? 'Settings loaded' : 'No settings available'}');
+      '✅ SDK Settings Retrieved: ${hasSettings ? 'Settings loaded' : 'No settings available'}',
+    );
   }
 
   // verboseLog Function
@@ -457,10 +479,7 @@ class _MyHomePageState extends State<MyHomePage> {
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
           ),
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 12),
-          ),
+          child: Text(text, style: const TextStyle(fontSize: 12)),
         ),
       ),
     );
@@ -469,10 +488,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.blue,
-      ),
+      appBar: AppBar(title: Text(widget.title), backgroundColor: Colors.blue),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -527,7 +543,9 @@ class _MyHomePageState extends State<MyHomePage> {
             _buildButton('trackAdRevenue', _trackAdRevenue),
             _buildButton('AdMob Ad Revenue Tracking', _trackAdmobAdRevenue),
             _buildButton(
-                'AppLovin Ad Revenue Tracking', _trackApplovinAdRevenue),
+              'AppLovin Ad Revenue Tracking',
+              _trackApplovinAdRevenue,
+            ),
 
             const SizedBox(height: 16),
 
@@ -555,7 +573,9 @@ class _MyHomePageState extends State<MyHomePage> {
             _buildButton('getGeolocation', _getGeolocation),
             _buildButton('isFirstLaunch', _getIsFirstLaunch),
             _buildButton(
-                'getUserFirstTouchTimestamp', _getUserFirstTouchTimestamp),
+              'getUserFirstTouchTimestamp',
+              _getUserFirstTouchTimestamp,
+            ),
 
             const SizedBox(height: 16),
 
