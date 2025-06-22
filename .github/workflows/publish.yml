@@ -22,9 +22,16 @@ jobs:
       # - name: Check Publish Warnings
       #   run: dart pub publish --dry-run
 
-      - name: Setup Pub Credentials
-        run: |
-          echo '${{ secrets.PUB_DEV_CREDENTIALS }}' > ~/.pub-cache/credentials.json
+      # - name: Setup Pub Credentials
+      #   run: |
+      #     echo '${{ secrets.PUB_DEV_CREDENTIALS }}' > ~/.pub-cache/credentials.json
+
+      # - name: Publish
+      #   run: dart pub publish --force
 
       - name: Publish
-        run: dart pub publish --force
+        uses: k-paxian/dart-package-publisher@v1.5.1
+        with:
+          credentialJson: ${{ secrets.PUB_DEV_CREDENTIALS }}
+          flutter: true
+          skipTests: true
