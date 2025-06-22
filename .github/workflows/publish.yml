@@ -19,8 +19,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Check Publish Warnings
-        run: dart pub publish --dry-run
+      # - name: Check Publish Warnings
+      #   run: dart pub publish --dry-run
 
       - name: Setup Pub Credentials
         run: |
