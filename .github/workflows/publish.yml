@@ -19,7 +19,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Publish to pub.dev
-        env:
-          PUB_CREDENTIALS: ${{ secrets.PUB_DEV_CREDENTIALS }}
+      - name: Check Publish Warnings
+        run: dart pub publish --dry-run
+
+      - name: Setup Pub Credentials
+        run: |
+          echo '${{ secrets.PUB_DEV_CREDENTIALS }}' > ~/.pub-cache/credentials.json
+
+      - name: Publish
         run: dart pub publish --force
