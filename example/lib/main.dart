@@ -573,7 +573,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // Footer
             const Center(
               child: Text(
-                'Metriqus Flutter SDK Example\n🚀 All functions implemented! 🚀',
+                'Metriqus Flutter SDK Example',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
