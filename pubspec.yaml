@@ -1,21 +1,11 @@
 name: metriqus_flutter_sdk
 description: "Metriqus Flutter SDK"
 version: 1.0.0
-homepage: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk
-repository: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk
-issue_tracker: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk/issues
-documentation: https://github.com/YOUR_USERNAME/metriqus_flutter_sdk#readme
+homepage: https://github.com/Metriqus-SDK/metriqus_flutter_sdk
+repository: https://github.com/Metriqus-SDK/metriqus_flutter_sdk
+issue_tracker: https://github.com/Metriqus-SDK/metriqus_flutter_sdk/issues
+documentation: https://github.com/Metriqus-SDK/metriqus_flutter_sdk#readme
 
-
-topics:
-  - analytics
-  - tracking
-  - sdk
-  - events
-  - performance
-  - advertising
-  - revenue
-  - gaming
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
