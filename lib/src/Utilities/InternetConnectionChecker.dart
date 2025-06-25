@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../WebRequest/RequestSender.dart';
 import '../WebRequest/Response.dart';

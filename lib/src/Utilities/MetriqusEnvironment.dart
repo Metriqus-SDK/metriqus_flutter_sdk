@@ -14,8 +14,6 @@ extension MetriqusEnvironmentExtension on MetriqusEnvironment {
         return "sandbox";
       case MetriqusEnvironment.production:
         return "production";
-      default:
-        return "unknown";
     }
   }
 }

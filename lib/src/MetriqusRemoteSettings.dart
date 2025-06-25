@@ -106,9 +106,6 @@ class MetriqusRemoteSettings {
             'MetriqusRemoteSettings cleaned jsonString: $cleanedJsonString');
 
         jsonData = jsonDecode(cleanedJsonString);
-        if (jsonData == null) {
-          return null;
-        }
       } else {
         // Unsupported input type
         Metriqus.errorLog('MetriqusRemoteSettings: Unsupported input type');

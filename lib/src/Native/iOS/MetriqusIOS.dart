@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../MetriqusNative.dart';
 import '../../MetriqusSettings.dart';
 import '../../Utilities/MetriqusUtils.dart';
 import '../../EventModels/Attribution/MetriqusAttribution.dart';
-import '../../ThirdParty/SimpleJSON.dart';
 import '../../Metriqus.dart';
 
 /// iOS-specific implementation of MetriqusNative

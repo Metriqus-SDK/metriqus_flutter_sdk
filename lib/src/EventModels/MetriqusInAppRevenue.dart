@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import '../EventLogger/Parameters/TypedParameter.dart';
 
 /// Represents in-app revenue details, including product information, pricing, promotions, and transaction IDs.

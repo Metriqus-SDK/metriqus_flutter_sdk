@@ -3,7 +3,6 @@ import '../ThirdParty/SimpleJSON.dart';
 import 'Parameters/TypedParameter.dart';
 import 'Parameters/DynamicParameter.dart';
 import '../Package/PackageModels/AppInfoPackage.dart';
-import '../Utilities/MetriqusUtils.dart';
 import '../Utilities/MetriqusEnvironment.dart';
 import '../Metriqus.dart';
 

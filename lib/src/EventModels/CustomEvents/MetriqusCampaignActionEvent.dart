@@ -72,8 +72,6 @@ class MetriqusCampaignActionEvent extends MetriqusCustomEvent {
         return "close";
       case MetriqusCampaignActionType.purchase:
         return "purchase";
-      default:
-        return "show";
     }
   }
 

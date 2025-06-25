@@ -1,13 +1,9 @@
-import 'dart:convert';
 import '../EventModels/CustomEvents/MetriqusCustomEvent.dart';
 import '../EventModels/MetriqusInAppRevenue.dart';
-import '../Utilities/MetriqusUtils.dart';
 import '../EventModels/AdRevenue/MetriqusAdRevenue.dart';
 import '../EventModels/Attribution/MetriqusAttribution.dart';
 import '../EventLogger/MetriqusLogger.dart';
 import '../Metriqus.dart';
-import '../MetriqusSettings.dart';
-import '../Utilities/DeviceInfo.dart';
 import 'IPackageSender.dart';
 import 'PackageBuilder.dart';
 

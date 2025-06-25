@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:uuid/uuid.dart';
 import '../MetriqusSettings.dart';
 import '../Utilities/DeviceInfo.dart';

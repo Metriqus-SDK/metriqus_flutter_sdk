@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../../ThirdParty/SimpleJSON.dart';
 import '../../Metriqus.dart';
 
 /// Represents application information package

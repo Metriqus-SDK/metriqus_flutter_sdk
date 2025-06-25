@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'Response.dart';
 import '../Metriqus.dart';
-import '../MetriqusSettings.dart';
 
 /// Wrapper class for sending web requests using HTTP package
 class RequestSender {

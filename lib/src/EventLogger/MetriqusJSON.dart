@@ -11,7 +11,7 @@ class MetriqusJSON {
     if (node == null) return null;
 
     var nodeValue = node[key];
-    if (nodeValue == null || nodeValue.value.isEmpty) return null;
+    if (nodeValue.value.isEmpty) return null;
 
     return nodeValue.value;
   }
@@ -21,7 +21,7 @@ class MetriqusJSON {
     if (node == null) return 0;
 
     var nodeValue = node[key];
-    if (nodeValue == null || nodeValue.value.isEmpty) return 0;
+    if (nodeValue.value.isEmpty) return 0;
 
     return parseInt(nodeValue.value);
   }
@@ -31,7 +31,7 @@ class MetriqusJSON {
     if (node == null) return 0.0;
 
     var nodeValue = node[key];
-    if (nodeValue == null || nodeValue.value.isEmpty) return 0.0;
+    if (nodeValue.value.isEmpty) return 0.0;
 
     return parseDouble(nodeValue.value);
   }
@@ -41,7 +41,7 @@ class MetriqusJSON {
     if (node == null) return false;
 
     var nodeValue = node[key];
-    if (nodeValue == null || nodeValue.value.isEmpty) return false;
+    if (nodeValue.value.isEmpty) return false;
 
     return parseBool(nodeValue.value);
   }

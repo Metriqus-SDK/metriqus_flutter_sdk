@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../Metriqus.dart';
 import 'Geolocation.dart';

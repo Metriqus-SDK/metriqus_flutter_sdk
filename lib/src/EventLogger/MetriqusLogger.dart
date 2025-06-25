@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../Storage/IStorage.dart';
 import '../Utilities/MetriqusUtils.dart';
 import 'Event.dart';
@@ -250,61 +249,6 @@ class MetriqusLogger {
     }
 
     return buffer.toString().trim();
-  }
-
-  /// Formats JSON for readable logging
-  static String _formatJsonForLog(dynamic json, int indent) {
-    final indentStr = '  ' * indent;
-    final nextIndentStr = '  ' * (indent + 1);
-
-    if (json is Map<String, dynamic>) {
-      final buffer = StringBuffer();
-      buffer.writeln('{');
-
-      final entries = json.entries.toList();
-      for (int i = 0; i < entries.length; i++) {
-        final entry = entries[i];
-        buffer.write('$nextIndentStr"${entry.key}": ');
-
-        if (entry.value == null) {
-          buffer.write('null');
-        } else if (entry.value is String) {
-          buffer.write('"${entry.value}"');
-        } else if (entry.value is num || entry.value is bool) {
-          buffer.write('${entry.value}');
-        } else {
-          buffer.write(_formatJsonForLog(entry.value, indent + 1));
-        }
-
-        if (i < entries.length - 1) {
-          buffer.write(',');
-        }
-        buffer.writeln();
-      }
-
-      buffer.write('$indentStr}');
-      return buffer.toString();
-    } else if (json is List) {
-      if (json.isEmpty) return '[]';
-
-      final buffer = StringBuffer();
-      buffer.writeln('[');
-
-      for (int i = 0; i < json.length; i++) {
-        buffer.write('$nextIndentStr');
-        buffer.write(_formatJsonForLog(json[i], indent + 1));
-
-        if (i < json.length - 1) {
-          buffer.write(',');
-        }
-        buffer.writeln();
-      }
-
-      buffer.write('$indentStr]');
-      return buffer.toString();
-    } else {
-      return json.toString();
-    }
   }
 
   /// Dispose the logger and its resources

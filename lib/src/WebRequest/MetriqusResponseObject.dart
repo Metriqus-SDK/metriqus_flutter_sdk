@@ -1,5 +1,4 @@
-﻿import 'dart:convert';
-import '../ThirdParty/SimpleJSON.dart';
+﻿import '../ThirdParty/SimpleJSON.dart';
 
 /// Response object for Metriqus API calls
 class MetriqusResponseObject {

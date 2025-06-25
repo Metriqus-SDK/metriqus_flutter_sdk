@@ -39,15 +39,11 @@ class MetaAttributionUtilities {
 
     try {
       final jsonNode = JSONNode.parse(utmContent);
-      if (jsonNode == null) return null;
 
       final source = jsonNode["source"];
-      if (source == null) return null;
 
       final data = source["data"];
       final nonce = source["nonce"];
-
-      if (data == null || nonce == null) return null;
 
       // Get app info to retrieve bundle ID
       final appInfo = await AppInfoPackage.getCurrentAppInfo();

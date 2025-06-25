@@ -134,9 +134,6 @@ class EventQueueController implements IEventQueueController {
 
       var remoteSettings = Metriqus.getMetriqusRemoteSettings();
 
-      int timeSinceLastFlush = currentTime.difference(lastFlushTime).inSeconds;
-      int currentEventCount = _eventQueue.events.length;
-
       // Timer runs silently - no EventQueueLog
 
       bool batchLimitReached = _eventQueue.events.length >=

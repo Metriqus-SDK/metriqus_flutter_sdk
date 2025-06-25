@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../../EventLogger/Parameters/TypedParameter.dart';
 import '../../Utilities/MetriqusUtils.dart';
 import '../../ThirdParty/SimpleJSON.dart';
@@ -47,7 +46,6 @@ class MetriqusAttribution {
   static MetriqusAttribution? parse(String attributionJsonString) {
     try {
       final jsonNode = JSONNode.parse(attributionJsonString);
-      if (jsonNode == null) return null;
 
       final attribution = MetriqusAttribution();
       attribution.raw = attributionJsonString.replaceAll('"', ' ');
@@ -124,35 +122,6 @@ class MetriqusAttribution {
   static int? _tryParseInt(String? value) {
     if (value == null || value.isEmpty) return null;
     return int.tryParse(value);
-  }
-
-  /// Check if attribution data contains test/placeholder values
-  static bool _isTestData(MetriqusAttribution attribution) {
-    // Common test/placeholder values to detect
-    const testValues = [
-      1234567890, // Most common test value
-      123456789,
-      999999999,
-      111111111,
-      1111111111,
-      0, // Zero values can also indicate test data
-    ];
-
-    // Check if multiple critical fields contain test values
-    final hasTestOrgId = testValues.contains(attribution.orgId);
-    final hasTestCampaignId = testValues.contains(attribution.campaignId);
-    final hasTestAdGroupId = testValues.contains(attribution.adGroupId);
-    final hasTestAdId = testValues.contains(attribution.adId);
-
-    // If 2 or more fields contain the same test value, consider it test data
-    if (hasTestOrgId && hasTestCampaignId) return true;
-    if (hasTestOrgId && hasTestAdGroupId) return true;
-    if (hasTestCampaignId && hasTestAdGroupId) return true;
-
-    // Special case: if orgId is 1234567890 (very obvious test value)
-    if (attribution.orgId == 1234567890) return true;
-
-    return false;
   }
 
   /// Converts the attribution data to a JSON map

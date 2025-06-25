@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../Storage/IStorage.dart';
 import '../Utilities/MetriqusUtils.dart';
@@ -129,7 +128,7 @@ abstract class MetriqusNative {
       Future.delayed(Duration(milliseconds: 100), () {
         _processAttribution();
       });
-    } catch (e, stackTrace) {
+    } catch (e) {
       Metriqus.errorLog("❌ Error while initializing Native: $e");
 
       if (storage == null) {

@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:intl/intl.dart';
 import 'package:dart_flutter_version/dart_flutter_version.dart';
 import '../Metriqus.dart';
 import '../Package/PackageModels/AppInfoPackage.dart';
@@ -57,7 +56,7 @@ class DeviceInfo {
           deviceName = androidInfo.device;
           deviceModel = '${androidInfo.brand} ${androidInfo.model}';
 
-          String buildDisplay = androidInfo.display ?? '';
+          String buildDisplay = androidInfo.display;
           osName =
               'Android OS ${androidInfo.version.release} / API-${androidInfo.version.sdkInt}';
           if (buildDisplay.isNotEmpty) {
@@ -192,15 +191,6 @@ class DeviceInfo {
       Metriqus.errorLog('Error getting Flutter version: $e');
       flutterVersion = '';
     }
-  }
-
-  /// Calculate device diagonal size in inches
-  double _deviceDiagonalSizeInInches() {
-    if (screenDpi <= 0) return 0.0;
-
-    double screenWidthInches = screenWidth / screenDpi.toDouble();
-    double screenHeightInches = screenHeight / screenDpi.toDouble();
-    return sqrt(pow(screenWidthInches, 2) + pow(screenHeightInches, 2));
   }
 
   /// Determine Android device type

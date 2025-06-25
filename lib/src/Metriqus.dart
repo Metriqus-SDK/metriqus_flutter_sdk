@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
 import 'MetriqusSettings.dart';
@@ -14,13 +13,10 @@ import 'EventModels/AdRevenue/MetriqusAdmobAdRevenue.dart';
 import 'EventModels/MetriqusInAppRevenue.dart';
 import 'EventModels/CustomEvents/MetriqusCustomEvent.dart';
 import 'EventLogger/Parameters/TypedParameter.dart';
-import 'Utilities/MetriqusEnvironment.dart';
-import 'Utilities/UniqueUserIdentifier.dart';
 import 'EventModels/CustomEvents/LevelProgression/MetriqusLevelStartedEvent.dart';
 import 'EventModels/CustomEvents/LevelProgression/MetriqusLevelCompletedEvent.dart';
 import 'EventModels/CustomEvents/MetriqusItemUsedEvent.dart';
 import 'EventModels/CustomEvents/MetriqusCampaignActionEvent.dart';
-import 'Package/PackageModels/AppInfoPackage.dart';
 import 'EventLogger/MetriqusLogger.dart';
 
 /// Main Metriqus SDK class for Flutter

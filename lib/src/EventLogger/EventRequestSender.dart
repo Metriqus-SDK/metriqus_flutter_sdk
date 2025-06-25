@@ -4,7 +4,6 @@ import 'package:crypto/crypto.dart';
 import 'package:pointycastle/export.dart';
 import '../WebRequest/RequestSender.dart';
 import '../Utilities/MetriqusUtils.dart';
-import '../WebRequest/Response.dart';
 import '../WebRequest/MetriqusResponseObject.dart';
 import '../Metriqus.dart';
 
@@ -69,8 +68,8 @@ class EventRequestSender {
 
       Metriqus.infoLog("🔥 [NETWORK] 📡 Target URL: $eventPostUrl");
 
-      String timestamp = MetriqusUtils.getCurrentUtcTimestampSeconds()
-          .toString();
+      String timestamp =
+          MetriqusUtils.getCurrentUtcTimestampSeconds().toString();
       Metriqus.verboseLog("🔥 [NETWORK] Generated timestamp: $timestamp");
 
       // Log the raw events JSON before encryption for debugging
