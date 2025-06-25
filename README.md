@@ -17,10 +17,7 @@ To use the Metriqus SDK in your Flutter app, add it to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-    metriqus_flutter_sdk:
-    git:
-      url: https://github.com/Metriqus-SDK/metriqus_flutter_sdk.git
-      ref: main
+  metriqus_flutter_sdk: ^1.0.0
 ```
 
 Then run:
