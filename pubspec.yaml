@@ -1,6 +1,6 @@
 name: metriqus_flutter_sdk
 description: "Metriqus Flutter SDK"
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/Metriqus-SDK/metriqus_flutter_sdk
 repository: https://github.com/Metriqus-SDK/metriqus_flutter_sdk
 issue_tracker: https://github.com/Metriqus-SDK/metriqus_flutter_sdk/issues
@@ -19,7 +19,7 @@ dependencies:
   shared_preferences: ^2.2.2
   device_info_plus: ^9.1.2
   package_info_plus: ^8.3.0
-  connectivity_plus: ^5.0.2
+  connectivity_plus: ^6.1.4
   crypto: ^3.0.6
   path_provider: ^2.1.5
   pointycastle: ^3.9.1
