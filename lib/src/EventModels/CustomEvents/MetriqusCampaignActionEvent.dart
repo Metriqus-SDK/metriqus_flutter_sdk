@@ -8,6 +8,9 @@ enum MetriqusCampaignActionType {
   click,
   close,
   purchase,
+  next,
+  prev,
+  detailsClose
 }
 
 /// Represents a campaign action event with campaign details
@@ -19,7 +22,8 @@ class MetriqusCampaignActionEvent extends MetriqusCustomEvent {
 
   /// Constructor with campaign details
   MetriqusCampaignActionEvent(
-      String campaignId, String variantId, MetriqusCampaignActionType action)
+      String campaignId, MetriqusCampaignActionType action,
+      {String? variantId})
       : super(MetriqusEventKeys.eventCampaignDetails) {
     this.campaignId = campaignId;
     this.variantId = variantId;
@@ -27,11 +31,9 @@ class MetriqusCampaignActionEvent extends MetriqusCustomEvent {
   }
 
   /// Constructor with campaign details and parameters
-  MetriqusCampaignActionEvent.withParameters(
-      String campaignId,
-      String variantId,
-      MetriqusCampaignActionType action,
-      List<TypedParameter> parameters)
+  MetriqusCampaignActionEvent.withParameters(String campaignId,
+      MetriqusCampaignActionType action, List<TypedParameter> parameters,
+      {String? variantId})
       : super.withParameters(
             MetriqusEventKeys.eventCampaignDetails, parameters) {
     this.campaignId = campaignId;
@@ -72,6 +74,12 @@ class MetriqusCampaignActionEvent extends MetriqusCustomEvent {
         return "close";
       case MetriqusCampaignActionType.purchase:
         return "purchase";
+      case MetriqusCampaignActionType.next:
+        return "next";
+      case MetriqusCampaignActionType.prev:
+        return "prev";
+      case MetriqusCampaignActionType.detailsClose:
+        return "details_close";
     }
   }
 
@@ -94,8 +102,8 @@ class MetriqusCampaignActionEvent extends MetriqusCustomEvent {
 
     final event = MetriqusCampaignActionEvent(
       json['campaignId'] ?? '',
-      json['variantId'] ?? '',
       action,
+      variantId: json['variantId'],
     );
     return event;
   }
@@ -111,6 +119,12 @@ class MetriqusCampaignActionEvent extends MetriqusCustomEvent {
         return MetriqusCampaignActionType.close;
       case 'purchase':
         return MetriqusCampaignActionType.purchase;
+      case 'next':
+        return MetriqusCampaignActionType.next;
+      case 'prev':
+        return MetriqusCampaignActionType.prev;
+      case 'details_close':
+        return MetriqusCampaignActionType.detailsClose;
       default:
         return MetriqusCampaignActionType.show;
     }

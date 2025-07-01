@@ -288,8 +288,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _setLoading();
     final campaignEvent = MetriqusCampaignActionEvent(
       'summer_2024',
-      'variant_a',
       MetriqusCampaignActionType.click,
+      variantId: 'variant_a',
     );
 
     Metriqus.trackCampaignAction(campaignEvent);
@@ -340,9 +340,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getAdid() {
     _setLoading();
     final adid = Metriqus.getAdid();
-    final shortAdid = adid != null
-        ? '${adid.substring(0, 8)}...'
-        : 'Not available';
+    final shortAdid =
+        adid != null ? '${adid.substring(0, 8)}...' : 'Not available';
     _updateStatus('✅ Advertising ID Retrieved: $shortAdid');
   }
 
@@ -360,9 +359,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getUniqueUserId() {
     _setLoading();
     final userId = Metriqus.getUserId();
-    final shortUserId = userId != null
-        ? '${userId.substring(0, 8)}...'
-        : 'Not available';
+    final shortUserId =
+        userId != null ? '${userId.substring(0, 8)}...' : 'Not available';
     _updateStatus('✅ User ID Retrieved: $shortUserId');
   }
 
@@ -370,9 +368,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getSessionId() {
     _setLoading();
     final sessionId = Metriqus.getSessionId();
-    final shortSessionId = sessionId != null
-        ? '${sessionId.substring(0, 8)}...'
-        : 'Not available';
+    final shortSessionId =
+        sessionId != null ? '${sessionId.substring(0, 8)}...' : 'Not available';
     _updateStatus('✅ Session ID Retrieved: $shortSessionId');
   }
 

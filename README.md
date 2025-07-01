@@ -341,9 +341,9 @@ void trackLevelCompleted() {
 ```dart
 void trackCampaignAction() {
   final campaignEvent = MetriqusCampaignActionEvent(
-    'summer_2024', 
-    'variant_a', 
-    MetriqusCampaignActionType.click
+    'summer_2024',
+    MetriqusCampaignActionType.click,
+    variantId: 'variant_a'
   );
   
   Metriqus.trackCampaignAction(campaignEvent);
@@ -464,6 +464,47 @@ final isFirstLaunch = Metriqus.isFirstLaunch();
 
 ```dart
 final timestamp = Metriqus.getUserFirstTouchTimestamp();
+```
+
+### Utility Classes
+
+#### MetriqusOrderStatus
+
+Constant values for order statuses:
+
+```dart
+// Successful order status
+String orderStatus = MetriqusOrderStatus.success;
+
+// Failed order status  
+String orderStatus = MetriqusOrderStatus.fail;
+
+// Cancelled order status
+String orderStatus = MetriqusOrderStatus.cancel;
+```
+
+#### MetriqusAdUnit
+
+Constant values for ad unit types:
+
+```dart
+// Banner ad
+String adUnit = MetriqusAdUnit.banner;
+
+// Interstitial ad
+String adUnit = MetriqusAdUnit.interstitial;
+
+// Rewarded ad
+String adUnit = MetriqusAdUnit.rewarded;
+
+// Rewarded interstitial ad
+String adUnit = MetriqusAdUnit.rewardedInterstitial;
+
+// Native advanced ad
+String adUnit = MetriqusAdUnit.nativeAdvenced;
+
+// App open ad
+String adUnit = MetriqusAdUnit.appOpen;
 ```
 
 ### SDK Settings & Debugging

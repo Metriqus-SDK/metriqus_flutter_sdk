@@ -4,6 +4,6 @@ class MetriqusAdUnit {
   static const String interstitial = "interstitial";
   static const String rewarded = "rewarded";
   static const String rewardedInterstitial = "rewarded_interstitial";
-  static const String nativeAdvanced = "native_advenced";
+  static const String nativeAdvenced = "native_advenced";
   static const String appOpen = "app_open";
 }

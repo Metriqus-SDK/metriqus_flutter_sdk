@@ -72,6 +72,8 @@ export 'src/EventModels/CustomEvents/MetriqusCampaignActionEvent.dart';
 export 'src/Utilities/DeviceInfo.dart';
 export 'src/Utilities/MetriqusUtils.dart';
 export 'src/Utilities/MetriqusEnvironment.dart';
+export 'src/Utilities/MetriqusAdUnit.dart';
+export 'src/Utilities/MetriqusOrderStatus.dart';
 export 'src/Utilities/UniqueUserIdentifier.dart';
 export 'src/Utilities/Backoff.dart';
 export 'src/Utilities/InternetConnectionChecker.dart';
