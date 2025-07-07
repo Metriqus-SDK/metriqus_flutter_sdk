@@ -26,6 +26,7 @@ class Metriqus {
   static MetriqusSettings? _metriqusSettings;
   static bool _isInitialized = false;
   static bool _isTrackingEnabled = true;
+  static Timer? _sessionBeatTimer;
 
   // Stream controllers for events
   static final StreamController<String> _onLogController =
@@ -79,6 +80,7 @@ class Metriqus {
 
         if (_isInitialized) {
           infoLog("✅ Metriqus SDK initialization completed successfully");
+          _startSessionBeatTimer();
           _onSdkInitializeController.add(true);
         } else {
           errorLog(
@@ -328,7 +330,7 @@ class Metriqus {
   static void sendSessionBeatEvent() {
     if (!_checkInitialization()) return;
 
-    verboseLog("💓 Sending session beat");
+    verboseLog("Sending session beat");
     _native!.sendSessionBeatEvent();
   }
 
@@ -479,8 +481,34 @@ class Metriqus {
     _native!.onQuit();
   }
 
+  static void _startSessionBeatTimer() {
+    _sessionBeatTimer?.cancel();
+
+    verboseLog("Starting session beat timer (60 second intervals)");
+
+    _sessionBeatTimer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      sendSessionBeatEvent();
+
+      if (_isInitialized && _native != null) {
+        final internetChecker = _native!.getInternetConnectionChecker;
+        internetChecker?.checkInternetConnection();
+      }
+    });
+
+    infoLog("Session beat timer started successfully");
+  }
+
+  static void _stopSessionBeatTimer() {
+    if (_sessionBeatTimer != null) {
+      _sessionBeatTimer!.cancel();
+      _sessionBeatTimer = null;
+      verboseLog("Session beat timer stopped");
+    }
+  }
+
   /// Dispose resources
   static void dispose() {
+    _stopSessionBeatTimer();
     MetriqusLogger.dispose();
     _onLogController.close();
     _onSdkInitializeController.close();

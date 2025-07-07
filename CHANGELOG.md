@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.4]
+
+- Version 1.0.4 of Metriqus Flutter SDK
 
 ## [1.0.3]
 

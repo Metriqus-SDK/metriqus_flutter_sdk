@@ -4,7 +4,7 @@ import 'Geolocation.dart';
 
 /// IP-based geolocation service
 class IPGeolocation {
-  static const String _apiUrl = 'http://ip-api.com/json/';
+  static const String _apiUrl = 'https://sdk.metriqus.com/event/geo';
 
   /// Get geolocation data using IP API
   static Future<Geolocation?> getGeolocation() async {
@@ -23,13 +23,14 @@ class IPGeolocation {
 
         final data = response.data;
 
-        if (data['status'] == 'success') {
+        if (data is Map && data.containsKey('data') && data['data'] is Map) {
+          final geoData = data['data'] as Map<String, dynamic>;
           return Geolocation(
-            country: data['country'] ?? '',
-            countryCode: data['countryCode'] ?? '',
-            city: data['city'] ?? '',
-            region: data['region'] ?? '',
-            regionName: data['regionName'] ?? '',
+            country: geoData['country']?.toString() ?? '',
+            countryCode: geoData['countryCode']?.toString() ?? '',
+            city: geoData['city']?.toString() ?? '',
+            region: geoData['region']?.toString() ?? '',
+            regionName: geoData['regionName']?.toString() ?? '',
           );
         }
       }
