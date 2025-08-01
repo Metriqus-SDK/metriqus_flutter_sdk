@@ -508,7 +508,7 @@ abstract class MetriqusNative {
         ).toJson(),
       ),
       headers: headers,
-    );
+    ).timeout(Duration(seconds: 60));
 
     var mro = WebResponse.MetriqusResponseObject.parse(response.data);
 

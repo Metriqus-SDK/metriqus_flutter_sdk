@@ -176,7 +176,7 @@ class EventRequestSender {
         eventPostUrl,
         encryptedJsonData,
         headers: headers,
-      );
+      ).timeout(Duration(seconds: 60));
       Metriqus.verboseLog("🔥 [NETWORK] HTTP POST request completed");
 
       if (response.isSuccess) {
