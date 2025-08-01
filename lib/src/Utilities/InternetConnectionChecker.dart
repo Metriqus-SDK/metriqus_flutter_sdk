@@ -20,6 +20,7 @@ class InternetConnectionChecker {
   Future<bool> checkInternetConnection() async {
     try {
       if (_lastCheckTime != null &&
+          DateTime.now().difference(_lastCheckTime!).inSeconds < 30) {
         return _lastResult;
       }
 
