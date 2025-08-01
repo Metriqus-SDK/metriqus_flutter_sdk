@@ -154,40 +154,22 @@ class MetriqusAndroid extends MetriqusNative {
     Function(MetriqusAttribution?) callback,
   ) async {
     try {
-      Metriqus.verboseLog(
-          "🎯 [DEBUG] Android referrer URL received: $referrerUrl");
+      Metriqus.verboseLog("Android referrer URL received: '$referrerUrl'");
 
-      // Check if referrer URL is empty or invalid
-      if (referrerUrl.isEmpty) {
-        Metriqus.verboseLog(
-            "🎯 [DEBUG] Empty referrer URL, not calling callback");
-        return; // Don't call callback for empty referrer URL
-      }
-
-      // Parse referrer URL into MetriqusAttribution
       final attribution = MetriqusAttribution.fromReferrerUrl(referrerUrl);
 
-      Metriqus.verboseLog("🎯 [DEBUG] Android attribution parsed:");
+      Metriqus.verboseLog("Android attribution parsed:");
       Metriqus.verboseLog("  - source: ${attribution.source}");
       Metriqus.verboseLog("  - medium: ${attribution.medium}");
       Metriqus.verboseLog("  - campaign: ${attribution.campaign}");
+      Metriqus.verboseLog("  - term: ${attribution.term}");
+      Metriqus.verboseLog("  - content: ${attribution.content}");
+      Metriqus.verboseLog(
+          "  - params count: ${attribution.params?.length ?? 0}");
       Metriqus.verboseLog("  - raw: ${attribution.raw}");
 
-      // Check if attribution has any meaningful data
-      if (attribution.source == null &&
-          attribution.medium == null &&
-          attribution.campaign == null &&
-          attribution.term == null &&
-          attribution.content == null &&
-          (attribution.params == null || attribution.params!.isEmpty)) {
-        Metriqus.verboseLog(
-            "🎯 [DEBUG] No meaningful attribution data, not calling callback");
-        return; // Don't call callback for empty attribution data
-      }
-
-      // Check if this is Meta UTM and decrypt if needed
       if (MetaAttributionUtilities.isMetaUtm(attribution.source)) {
-        Metriqus.verboseLog("🔍 Meta UTM detected, decrypting...");
+        Metriqus.verboseLog("🔍 Meta UTM detected, attempting decryption...");
 
         final decryptedReferrerUrl =
             await MetaAttributionUtilities.decryptMetaUtm(
@@ -199,16 +181,16 @@ class MetriqusAndroid extends MetriqusNative {
             decryptedReferrerUrl,
           );
           Metriqus.verboseLog(
-              "🎯 [DEBUG] Meta attribution decrypted and parsed");
+              "Meta attribution decrypted and parsed successfully");
           callback(metaAttribution);
         } else {
           Metriqus.verboseLog(
-              "🎯 [DEBUG] Using original attribution (decrypt failed)");
+              "Meta UTM decryption failed, using original attribution");
           callback(attribution);
         }
       } else {
         Metriqus.verboseLog(
-            "🎯 [DEBUG] Using original attribution (not Meta UTM)");
+            "Standard attribution (not Meta UTM), returning parsed data");
         callback(attribution);
       }
     } catch (e) {

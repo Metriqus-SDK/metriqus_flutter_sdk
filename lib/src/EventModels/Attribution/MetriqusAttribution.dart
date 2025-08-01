@@ -1,6 +1,7 @@
 import '../../EventLogger/Parameters/TypedParameter.dart';
 import '../../Utilities/MetriqusUtils.dart';
 import '../../ThirdParty/SimpleJSON.dart';
+import '../../Metriqus.dart';
 
 /// Represents attribution data for tracking ad performance, supporting both iOS and Android platforms.
 class MetriqusAttribution {
@@ -29,6 +30,12 @@ class MetriqusAttribution {
 
   /// Default constructor
   MetriqusAttribution();
+
+  /// Constructor with referrer URL (Android)
+  MetriqusAttribution.withReferrerUrl(String referrerUrl) {
+    final queryDict = MetriqusUtils.parseAndSanitize(referrerUrl);
+    _parseDict(queryDict, referrerUrl);
+  }
 
   /// Constructor with referrer URL (Android)
   MetriqusAttribution.fromReferrerUrl(String referrerUrl) {
@@ -77,7 +84,11 @@ class MetriqusAttribution {
   /// Parses and assigns values from a dictionary of attribution data (Android)
   void _parseDict(
       Map<String, String>? dictAttributionData, String referrerUrl) {
-    if (dictAttributionData == null || referrerUrl.isEmpty) {
+    if (dictAttributionData == null) {
+      return;
+    }
+
+    if (referrerUrl.isEmpty) {
       return;
     }
 
@@ -109,6 +120,12 @@ class MetriqusAttribution {
 
       params ??= <TypedParameter>[];
       params!.add(TypedParameter.string(entry.key, entry.value));
+    }
+
+    if ((source == null || source!.isEmpty) &&
+        params != null &&
+        params!.any((param) => param.name == "gclid")) {
+      source = "googleads";
     }
   }
 

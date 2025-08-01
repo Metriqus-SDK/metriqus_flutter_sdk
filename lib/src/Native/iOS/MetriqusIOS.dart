@@ -103,11 +103,9 @@ class MetriqusIOS extends MetriqusNative {
             Metriqus.verboseLog(
                 "✅ Attribution token obtained: ${token.substring(0, min<int>(50, token.length))}...");
 
-            // Request attribution data from Apple with token
             final attribution = await _requestAttributionData(token);
             if (attribution != null) {
-              Metriqus.verboseLog(
-                  "🎯 [DEBUG] Attribution data received from Apple:");
+              Metriqus.verboseLog("Attribution data received from Apple:");
               Metriqus.verboseLog(
                   "  - attribution: ${attribution.attribution}");
               Metriqus.verboseLog("  - orgId: ${attribution.orgId}");
@@ -115,23 +113,18 @@ class MetriqusIOS extends MetriqusNative {
               Metriqus.verboseLog(
                   "  - raw: ${attribution.raw?.substring(0, min<int>(50, attribution.raw?.length ?? 0))}...");
 
-              // Only call callback if we have meaningful attribution data
-              // Check if it's not just test data that was filtered out
               if (attribution.raw != "Test data filtered out" ||
                   attribution.attribution == true) {
                 onReadCallback(attribution);
               } else {
                 Metriqus.verboseLog(
-                    "🎯 [DEBUG] Test data filtered out, not calling callback");
+                    "Test data filtered out, not calling callback");
               }
             } else {
-              Metriqus.verboseLog(
-                  "🎯 [DEBUG] Attribution data is NULL from Apple API");
-              // Don't call callback when attribution data is null, similar to C# code
+              Metriqus.verboseLog("Attribution data is NULL from Apple API");
             }
           } else {
-            Metriqus.errorLog("❌ Attribution Token is null or empty");
-            // Don't call callback when token is null/empty, similar to C# code
+            Metriqus.verboseLog("❌ Attribution Token is null or empty");
           }
         } else {
           final error = result['error'] ?? 'Unknown error';

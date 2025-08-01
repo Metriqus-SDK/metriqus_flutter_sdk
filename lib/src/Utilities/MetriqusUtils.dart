@@ -48,33 +48,47 @@ class MetriqusUtils {
       return sanitizedParameters;
     }
 
-    // Ensure the query string starts with '?' if it doesn't already
     if (!queryString.startsWith("?")) {
       queryString = "?" + queryString;
     }
 
     try {
       Uri uri = Uri.parse("http://dummy$queryString");
-      uri.queryParameters.forEach((key, value) {
+      String query = uri.query;
+
+      List<String> parameters = query.split('&');
+
+      for (String param in parameters) {
+        if (param.isEmpty) continue;
+
+        int equalIndex = param.indexOf('=');
+        if (equalIndex == -1) continue;
+
+        String key = Uri.decodeComponent(param.substring(0, equalIndex)).trim();
+        String value =
+            Uri.decodeComponent(param.substring(equalIndex + 1)).trim();
+
         if (key.isNotEmpty) {
           sanitizedParameters[key] = value;
         }
-      });
+      }
     } catch (e) {
-      // If parsing fails, try manual parsing
       String query =
           queryString.startsWith('?') ? queryString.substring(1) : queryString;
       List<String> parameters = query.split('&');
 
       for (String param in parameters) {
-        List<String> keyValue = param.split('=');
-        if (keyValue.length == 2) {
-          String key = Uri.decodeComponent(keyValue[0]).trim();
-          String value = Uri.decodeComponent(keyValue[1]).trim();
+        if (param.isEmpty) continue;
 
-          if (key.isNotEmpty) {
-            sanitizedParameters[key] = value;
-          }
+        int equalIndex = param.indexOf('=');
+        if (equalIndex == -1) continue;
+
+        String key = Uri.decodeComponent(param.substring(0, equalIndex)).trim();
+        String value =
+            Uri.decodeComponent(param.substring(equalIndex + 1)).trim();
+
+        if (key.isNotEmpty) {
+          sanitizedParameters[key] = value;
         }
       }
     }

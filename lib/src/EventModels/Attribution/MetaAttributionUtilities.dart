@@ -40,14 +40,24 @@ class MetaAttributionUtilities {
     try {
       final jsonNode = JSONNode.parse(utmContent);
 
+      if (jsonNode.data == null) {
+        return null;
+      }
+
       final source = jsonNode["source"];
+
+      if (source.data == null) return null;
 
       final data = source["data"];
       final nonce = source["nonce"];
 
-      // Get app info to retrieve bundle ID
+      if (data.data == null || nonce.data == null) return null;
+
       final appInfo = await AppInfoPackage.getCurrentAppInfo();
-      final bundleId = appInfo?.packageName ?? '';
+      final bundleId = appInfo?.packageName;
+
+      final userId = Metriqus.getUniqueUserId();
+      if (userId == null) return null;
 
       final headers = <String, String>{
         'Content-Type': 'application/json',
@@ -58,7 +68,7 @@ class MetaAttributionUtilities {
         data: data.value,
         nonce: nonce.value,
         bundle: bundleId,
-        uid: Metriqus.getUniqueUserId(),
+        uid: userId,
       );
 
       final response = await RequestSender.postAsync(

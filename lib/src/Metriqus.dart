@@ -407,8 +407,9 @@ class Metriqus {
     return _native!.getMetriqusRemoteSettings();
   }
 
-  /// Get Metriqus settings
+  /// Get MetriqusSettings
   static MetriqusSettings? getMetriqusSettings() {
+    if (!_checkInitialization()) return null;
     return _metriqusSettings;
   }
 
