@@ -1,7 +1,6 @@
 import '../../EventLogger/Parameters/TypedParameter.dart';
 import '../../Utilities/MetriqusUtils.dart';
 import '../../ThirdParty/SimpleJSON.dart';
-import '../../Metriqus.dart';
 
 /// Represents attribution data for tracking ad performance, supporting both iOS and Android platforms.
 class MetriqusAttribution {

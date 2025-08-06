@@ -367,9 +367,7 @@ Metriqus.trackButtonClick('PlayButton');
 ```dart
 // General Ad Revenue
 void trackAdRevenue() {
-  final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD');
-  adRevenue.source = 'metriqus';
-  adRevenue.adRevenueUnit = 'banner_main_001';
+  final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD', MetriqusAdUnit.banner, source: 'metriqus');
   adRevenue.adRevenueNetwork = 'AdMob';
   adRevenue.adRevenuePlacement = 'main_screen';
   adRevenue.adImpressionsCount = 1;
@@ -379,8 +377,7 @@ void trackAdRevenue() {
 
 // AdMob Ad Revenue
 void trackAdmobRevenue() {
-  final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(0.22, 'EUR');
-  admobRevenue.adRevenueUnit = 'ca-app-pub-123456789/987654321';
+  final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(0.22, 'EUR', MetriqusAdUnit.interstitial);
   admobRevenue.adRevenueNetwork = 'AdMob';
   admobRevenue.adRevenuePlacement = 'interstitial';
   admobRevenue.adImpressionsCount = 1;
@@ -390,8 +387,7 @@ void trackAdmobRevenue() {
 
 // AppLovin Ad Revenue
 void trackApplovinRevenue() {
-  final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD');
-  applovinRevenue.adRevenueUnit = 'applovin_rewarded_001';
+  final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD', MetriqusAdUnit.rewarded);
   applovinRevenue.adRevenueNetwork = 'AppLovin MAX';
   applovinRevenue.adRevenuePlacement = 'level_complete';
   applovinRevenue.adImpressionsCount = 1;
@@ -485,26 +481,32 @@ String orderStatus = MetriqusOrderStatus.cancel;
 
 #### MetriqusAdUnit
 
-Constant values for ad unit types:
+Enum values for ad unit types with type safety:
 
 ```dart
 // Banner ad
-String adUnit = MetriqusAdUnit.banner;
+MetriqusAdUnit adUnit = MetriqusAdUnit.banner;
 
 // Interstitial ad
-String adUnit = MetriqusAdUnit.interstitial;
+MetriqusAdUnit adUnit = MetriqusAdUnit.interstitial;
 
 // Rewarded ad
-String adUnit = MetriqusAdUnit.rewarded;
+MetriqusAdUnit adUnit = MetriqusAdUnit.rewarded;
 
 // Rewarded interstitial ad
-String adUnit = MetriqusAdUnit.rewardedInterstitial;
+MetriqusAdUnit adUnit = MetriqusAdUnit.rewardedInterstitial;
 
 // Native advanced ad
-String adUnit = MetriqusAdUnit.nativeAdvenced;
+MetriqusAdUnit adUnit = MetriqusAdUnit.nativeAdvenced;
 
 // App open ad
-String adUnit = MetriqusAdUnit.appOpen;
+MetriqusAdUnit adUnit = MetriqusAdUnit.appOpen;
+
+// Convert enum to string value
+String adUnitString = MetriqusAdUnit.banner.value; // Returns "banner"
+
+// Convert string to enum
+MetriqusAdUnit? adUnit = MetriqusAdUnit.fromString("banner"); // Returns MetriqusAdUnit.banner
 ```
 
 ### SDK Settings & Debugging

@@ -1,3 +1,5 @@
+import '../../Utilities/MetriqusAdUnit.dart';
+
 /// Represents ad revenue data, including source, earnings, currency, impressions, and network details.
 class MetriqusAdRevenue {
   /// The source of the ad revenue data (e.g., platform or provider).
@@ -16,7 +18,7 @@ class MetriqusAdRevenue {
   String? adRevenueNetwork;
 
   /// The specific ad unit generating the revenue.
-  String? adRevenueUnit;
+  MetriqusAdUnit? adRevenueUnit;
 
   /// The placement of the ad that contributed to the revenue.
   String? adRevenuePlacement;
@@ -32,16 +34,19 @@ class MetriqusAdRevenue {
   MetriqusAdRevenue();
 
   /// Initializes a new instance with the specified source.
-  MetriqusAdRevenue.withSource(String source) {
+  MetriqusAdRevenue.withSource(String source, MetriqusAdUnit adUnit) {
     _source = source;
+    adRevenueUnit = adUnit;
   }
 
   /// Initializes a new instance with revenue details (source is optional parameter)
-  MetriqusAdRevenue.withRevenue(double revenue, String currency,
+  MetriqusAdRevenue.withRevenue(
+      double revenue, String currency, MetriqusAdUnit adUnit,
       {String? source}) {
     _source = source;
     _revenue = revenue;
     _currency = currency;
+    adRevenueUnit = adUnit;
   }
 
   /// Gets the source of the ad revenue data.
@@ -53,6 +58,11 @@ class MetriqusAdRevenue {
     _currency = currency;
   }
 
+  /// Sets the ad unit
+  void setAdUnit(MetriqusAdUnit adUnit) {
+    adRevenueUnit = adUnit;
+  }
+
   /// Converts the ad revenue data to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -61,7 +71,7 @@ class MetriqusAdRevenue {
       'currency': _currency,
       'adImpressionsCount': adImpressionsCount,
       'adRevenueNetwork': adRevenueNetwork,
-      'adRevenueUnit': adRevenueUnit,
+      'adRevenueUnit': adRevenueUnit?.value,
       'adRevenuePlacement': adRevenuePlacement,
     };
   }
@@ -74,7 +84,7 @@ class MetriqusAdRevenue {
     adRevenue._currency = json['currency'];
     adRevenue.adImpressionsCount = json['adImpressionsCount'];
     adRevenue.adRevenueNetwork = json['adRevenueNetwork'];
-    adRevenue.adRevenueUnit = json['adRevenueUnit'];
+    adRevenue.adRevenueUnit = MetriqusAdUnit.fromString(json['adRevenueUnit']);
     adRevenue.adRevenuePlacement = json['adRevenuePlacement'];
     return adRevenue;
   }

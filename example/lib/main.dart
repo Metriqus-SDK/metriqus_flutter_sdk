@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:metriqus_flutter_sdk/metriqus_flutter_sdk.dart';
+import 'package:metriqus_flutter_sdk/src/Utilities/MetriqusAdUnit.dart';
 
 void main() async {
   try {
@@ -249,9 +250,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // trackAdRevenue Function
   void _trackAdRevenue() {
     _setLoading();
-    final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD');
-    adRevenue.source = 'metriqus';
-    adRevenue.adRevenueUnit = 'banner_main_001';
+    final adRevenue = MetriqusAdRevenue.withRevenue(
+        0.15, 'USD', MetriqusAdUnit.banner,
+        source: 'metriqus');
     adRevenue.adRevenueNetwork = 'AdMob';
     adRevenue.adRevenuePlacement = 'main_screen';
     adRevenue.adImpressionsCount = 1;
@@ -262,8 +263,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // AdMob Ad Revenue Tracking
   void _trackAdmobAdRevenue() {
     _setLoading();
-    final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(0.22, 'EUR');
-    admobRevenue.adRevenueUnit = 'ca-app-pub-123456789/987654321';
+    final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(
+        0.22, 'EUR', MetriqusAdUnit.interstitial);
     admobRevenue.adRevenueNetwork = 'AdMob';
     admobRevenue.adRevenuePlacement = 'interstitial';
     admobRevenue.adImpressionsCount = 1;
@@ -274,8 +275,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // AppLovin Ad Revenue Tracking
   void _trackApplovinAdRevenue() {
     _setLoading();
-    final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD');
-    applovinRevenue.adRevenueUnit = 'applovin_rewarded_001';
+    final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(
+        0.18, 'USD', MetriqusAdUnit.rewarded);
     applovinRevenue.adRevenueNetwork = 'AppLovin MAX';
     applovinRevenue.adRevenuePlacement = 'level_complete';
     applovinRevenue.adImpressionsCount = 1;

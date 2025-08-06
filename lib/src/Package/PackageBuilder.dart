@@ -283,7 +283,7 @@ class PackageBuilder {
     _addStringAlways(
         publisherParameters, "ad_revenue_network", event.adRevenueNetwork);
     _addStringAlways(
-        publisherParameters, "ad_revenue_unit", event.adRevenueUnit);
+        publisherParameters, "ad_revenue_unit", event.adRevenueUnit?.value);
     _addStringAlways(
         publisherParameters, "ad_revenue_placement", event.adRevenuePlacement);
 

@@ -1,7 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
-import '../WebRequest/RequestSender.dart';
-import '../WebRequest/Response.dart';
 import '../Metriqus.dart';
 
 /// Checks internet connectivity status

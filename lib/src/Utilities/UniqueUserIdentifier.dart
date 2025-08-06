@@ -1,5 +1,4 @@
-﻿import 'dart:convert';
-import 'package:crypto/crypto.dart';
+﻿import 'package:uuid/uuid.dart';
 import '../Storage/IStorage.dart';
 import '../Metriqus.dart';
 import 'MetriqusUtils.dart';
@@ -13,23 +12,16 @@ class UniqueUserIdentifier {
   String? get id => _id;
 
   /// Constructor that creates or loads unique user ID
-  UniqueUserIdentifier(IStorage storage, String adId, String deviceId) {
-    // First try to read existing user ID directly
-    String existingId = storage.loadData(_uniqueUserIdKey);
+  UniqueUserIdentifier(IStorage storage) {
+    bool isUniqueUserIdentifierKeyExist =
+        storage.checkKeyExist(_uniqueUserIdKey);
 
-    if (existingId.isNotEmpty) {
-      _id = existingId;
+    if (isUniqueUserIdentifierKeyExist) {
+      _id = storage.loadData(_uniqueUserIdKey);
       Metriqus.verboseLog("👤 Existing user ID loaded: $_id");
     } else {
-      // Generate new unique user ID using SHA256 hash
-      String combined = "$adId:$deviceId";
-      var bytes = utf8.encode(combined);
-      var digest = sha256.convert(bytes);
+      _id = const Uuid().v4();
 
-      // Convert to uppercase hex string and take first 16 characters (like C# code)
-      _id = digest.toString().toUpperCase().substring(0, 16);
-
-      // Save to storage
       storage.saveData(_uniqueUserIdKey, _id!);
       Metriqus.infoLog("👤 New user ID created: $_id");
     }

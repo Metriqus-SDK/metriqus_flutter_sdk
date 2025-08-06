@@ -95,9 +95,7 @@ abstract class MetriqusNative {
 
       // Initialize user identifier and attributes
       uniqueUserIdentifier = UniqueUserIdentifier(
-        storage!,
-        adId ?? '',
-        _deviceInfo!.deviceId,
+        storage!
       );
       userAttributes = UserAttributes(storage!);
 

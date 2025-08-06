@@ -123,7 +123,7 @@ class MetriqusPackageSender implements IPackageSender {
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildIAPEventPackage(metriqusEvent);
 
-      MetriqusLogger.logPackage(package);
+      MetriqusLogger.logPackage(package, sendImmediately: true);
     } catch (e) {
       Metriqus.errorLog("Error sending IAP event package: $e");
     }
@@ -153,7 +153,7 @@ class MetriqusPackageSender implements IPackageSender {
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildAdRevenueEventPackage(adRevenue);
 
-      MetriqusLogger.logPackage(package);
+      MetriqusLogger.logPackage(package, sendImmediately: true);
     } catch (e) {
       Metriqus.errorLog("Error sending ad revenue package: $e");
     }
