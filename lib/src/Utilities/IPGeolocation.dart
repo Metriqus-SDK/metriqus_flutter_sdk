@@ -12,8 +12,8 @@ class IPGeolocation {
       Metriqus.verboseLog('🌍 Attempting to fetch geolocation from: $_apiUrl');
 
       final dio = Dio();
-      dio.options.connectTimeout = const Duration(seconds: 10);
-      dio.options.receiveTimeout = const Duration(seconds: 10);
+      dio.options.connectTimeout = const Duration(seconds: 60);
+      dio.options.receiveTimeout = const Duration(seconds: 60);
 
       // Make HTTP request to IP API
       final response = await dio.get(_apiUrl);
