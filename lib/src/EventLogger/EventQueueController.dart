@@ -448,7 +448,7 @@ class EventQueueController implements IEventQueueController {
       });
     } else {
       Metriqus.errorLog(
-        "🔥 [EVENTQUEUE] ❌ Event batch sending failed, will retry",
+        "🔥 [EVENTQUEUE] ❌ Event batch sending failed, will retry. Batch size: $eventCount events, Remaining batches: ${_eventsToSend.length}. Event names: ${selectedEventQueue.events.map((e) => e.eventName).toList()}",
       );
       Metriqus.eventQueueLog(
         "FLUSH_BATCH_FAILED",

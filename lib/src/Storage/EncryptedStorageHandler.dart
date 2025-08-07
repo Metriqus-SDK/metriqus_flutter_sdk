@@ -114,7 +114,7 @@ class EncryptedStorageHandler implements IStorageHandler {
           // Check if JSON is malformed
           if (decryptedData.startsWith('[]') && decryptedData.length > 2) {
             Metriqus.errorLog(
-              '🔧 [STORAGE] Detected malformed JSON for $saveKey, resetting to empty array',
+              '🔧 [STORAGE] Detected malformed JSON for $saveKey, resetting to empty array. Decrypted data: $decryptedData',
             );
             _cache[saveKey] = '[]';
             _existsCache[saveKey] = true;

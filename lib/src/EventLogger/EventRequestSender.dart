@@ -42,7 +42,8 @@ class EventRequestSender {
       );
 
       if (remoteSettings?.eventPostUrl?.isEmpty ?? true) {
-        Metriqus.errorLog("🔥 [NETWORK] ❌ Event post URL not found or empty");
+        Metriqus.errorLog(
+            "🔥 [NETWORK] ❌ Event post URL not found or empty. Remote settings: ${remoteSettings?.toString() ?? 'NULL'}");
         Metriqus.eventQueueLog(
           "BATCH_SEND_ERROR",
           details: {

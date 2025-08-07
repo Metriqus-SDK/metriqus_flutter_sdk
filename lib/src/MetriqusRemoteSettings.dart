@@ -84,8 +84,8 @@ class MetriqusRemoteSettings {
         // If the input is already a Map object (converted to string), try to parse it differently
         if (input.startsWith('{') && !input.contains('"')) {
           // This looks like a Dart Map toString() output, not valid JSON
-          Metriqus.infoLog(
-              'Input appears to be Dart Map toString(), keeping current settings');
+          Metriqus.errorLog(
+              '🔧 [REMOTE_SETTINGS] Invalid JSON format detected - input appears to be Dart Map toString() output. Expected valid JSON but received: $input. Keeping current settings unchanged.');
           return null; // Return null to keep current settings
         }
 
@@ -108,7 +108,8 @@ class MetriqusRemoteSettings {
         jsonData = jsonDecode(cleanedJsonString);
       } else {
         // Unsupported input type
-        Metriqus.errorLog('MetriqusRemoteSettings: Unsupported input type');
+        Metriqus.errorLog(
+            '🔧 [REMOTE_SETTINGS] Unsupported input type detected. Expected Map<String, dynamic> or String, but received: ${input.runtimeType} with value: $input. Keeping current settings unchanged.');
         return null;
       }
 
