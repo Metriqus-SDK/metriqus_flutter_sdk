@@ -318,17 +318,12 @@ abstract class MetriqusNative {
       }
 
       getInstallTime((installTime) {
-        DateTime installDate = MetriqusUtils.timestampSecondsToDateTime(
+        // Install date available if window logic is re-enabled in the future
+        /* final DateTime installDate = MetriqusUtils.timestampSecondsToDateTime(
           installTime,
-        );
+        ); */
 
-        bool lastSendAttributionDateExist = storage!.checkKeyExist(
-          lastSendAttributionDateKey,
-        );
-
-        var remoteSettings = getMetriqusRemoteSettings();
-
-        int daysSinceInstall = currentDate.difference(installDate).inDays;
+        // Attribution window logic temporarily disabled; sending attribution once
 
         // C# Unity SDK attribution logic - exact match
         // if (daysSinceInstall < remoteSettings.attributionCheckWindow) {
