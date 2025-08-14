@@ -28,15 +28,12 @@ import '../Package/MetriqusPackageSender.dart';
 /// Abstract base class for platform-specific native implementations
 abstract class MetriqusNative {
   static const String firstLaunchTimeKey = "metriqus_first_launch_time";
-  static const String lastSessionStartTimeKey =
-      "metriqus_last_session_start_time";
+  static const String lastSessionStartTimeKey = "metriqus_last_session_start_time";
   static const String sessionIdKey = "metriqus_session_id";
-  static const String lastSendAttributionDateKey =
-      "metriqus_last_send_attribution_date";
+  static const String lastSendAttributionDateKey = "metriqus_last_send_attribution_date";
   static const String remoteSettingsKey = "metriqus_remote_settings";
   static const String geolocationKey = "geolocation_settings";
-  static const String geolocationLastFetchedTimeKey =
-      "geolocation_last_fetched_time";
+  static const String geolocationLastFetchedTimeKey = "geolocation_last_fetched_time";
 
   // Private fields
   IPackageSender? _packageSender;
@@ -66,8 +63,7 @@ abstract class MetriqusNative {
   DeviceInfo? get getDeviceInfo => _deviceInfo;
   UniqueUserIdentifier? get getUniqueUserIdentifier => uniqueUserIdentifier;
   UserAttributes? get getUserAttributes => userAttributes;
-  InternetConnectionChecker? get getInternetConnectionChecker =>
-      _internetConnectionChecker;
+  InternetConnectionChecker? get getInternetConnectionChecker => _internetConnectionChecker;
 
   /// Initialize the SDK
   Future<void> initSdk(MetriqusSettings settings) async {
@@ -94,17 +90,14 @@ abstract class MetriqusNative {
       _internetConnectionChecker = InternetConnectionChecker();
 
       // Initialize user identifier and attributes
-      uniqueUserIdentifier = UniqueUserIdentifier(
-        storage!
-      );
+      uniqueUserIdentifier = UniqueUserIdentifier(storage!);
       userAttributes = UserAttributes(storage!);
 
       // Initialize user attributes asynchronously
       await userAttributes!.initializeAsync();
 
       // Set up internet connection listener
-      _internetConnectionChecker!.onConnectedToInternet =
-          _onConnectedToInternet;
+      _internetConnectionChecker!.onConnectedToInternet = _onConnectedToInternet;
 
       // Wait for fetching remote settings and geolocation
       await _fetchRemoteSettings();
@@ -216,6 +209,11 @@ abstract class MetriqusNative {
     dispose();
   }
 
+  /// Public method to (re)process attribution on demand
+  void processAttributionNow() {
+    _processAttribution();
+  }
+
   /// Dispose all native resources
   void dispose() {
     _packageSender?.dispose();
@@ -244,15 +242,13 @@ abstract class MetriqusNative {
 
         var remoteSettings = getMetriqusRemoteSettings();
 
-        double passedMinutesSinceLastSession =
-            currentTime.difference(lastSessionStartTime).inMinutes.toDouble();
+        double passedMinutesSinceLastSession = currentTime.difference(lastSessionStartTime).inMinutes.toDouble();
 
         Metriqus.verboseLog(
           "Passed Minutes Since Last Session: $passedMinutesSinceLastSession",
         );
 
-        if (passedMinutesSinceLastSession >=
-            remoteSettings.sessionIntervalMinutes) {
+        if (passedMinutesSinceLastSession >= remoteSettings.sessionIntervalMinutes) {
           _sessionId = _generateGuid();
           storage!.saveData(sessionIdKey, _sessionId!);
 
@@ -288,20 +284,20 @@ abstract class MetriqusNative {
   void _processAttribution() {
     try {
       // Cancel attribution if tracking disabled
-      if (!isTrackingEnabled) {
-        Metriqus.infoLog(
-          "ProcessAttribution canceled: user not allowed tracking",
-        );
-        return;
-      }
+      // if (!isTrackingEnabled) {
+      //   Metriqus.infoLog(
+      //     "ProcessAttribution canceled: user not allowed tracking",
+      //   );
+      //   return;
+      // }
 
       // Cancel attribution on iOS platform if tracking disabled
-      if (metriqusSettings?.iOSUserTrackingDisabled == true) {
-        Metriqus.infoLog(
-          "ProcessAttribution canceled: iOS User Tracking Disabled",
-        );
-        return;
-      }
+      // if (metriqusSettings?.iOSUserTrackingDisabled == true) {
+      //   Metriqus.infoLog(
+      //     "ProcessAttribution canceled: iOS User Tracking Disabled",
+      //   );
+      //   return;
+      // }
 
       DateTime currentDate = MetriqusUtils.timestampSecondsToDateTime(
         MetriqusUtils.getCurrentUtcTimestampSeconds(),
@@ -312,8 +308,7 @@ abstract class MetriqusNative {
           (attribution) {
             if (attribution != null) {
               _packageSender?.sendAttributionPackage(attribution);
-              storage!.saveData(lastSendAttributionDateKey,
-                  _convertDateToString(currentDate));
+              storage!.saveData(lastSendAttributionDateKey, _convertDateToString(currentDate));
             }
           },
           (error) {
@@ -336,29 +331,27 @@ abstract class MetriqusNative {
         int daysSinceInstall = currentDate.difference(installDate).inDays;
 
         // C# Unity SDK attribution logic - exact match
-        if (daysSinceInstall < remoteSettings.attributionCheckWindow) {
-          // if it has been less than attribution window days, send attribution
-          sendAttr();
-        } else if (!lastSendAttributionDateExist) {
-          // if didnt send any attribution send it
-          sendAttr();
-        } else {
-          // if last attribution send date before attribution window days and now it passed
-          // attribution window days send last one more time
-          String lastAttributionDateStr = storage!.loadData(
-            lastSendAttributionDateKey,
-          );
-          DateTime lastAttributionDate = _parseDate(lastAttributionDateStr);
+        // if (daysSinceInstall < remoteSettings.attributionCheckWindow) {
+        // if it has been less than attribution window days, send attribution
+        sendAttr();
+        // } else if (!lastSendAttributionDateExist) {
+        //   // if didnt send any attribution send it
+        //   sendAttr();
+        // } else {
+        //   // if last attribution send date before attribution window days and now it passed
+        //   // attribution window days send last one more time
+        //   String lastAttributionDateStr = storage!.loadData(
+        //     lastSendAttributionDateKey,
+        //   );
+        //   DateTime lastAttributionDate = _parseDate(lastAttributionDateStr);
 
-          int daysSinceInstallWhenLastSent =
-              lastAttributionDate.difference(installDate).inDays;
+        //   int daysSinceInstallWhenLastSent = lastAttributionDate.difference(installDate).inDays;
 
-          if (daysSinceInstallWhenLastSent <
-                  remoteSettings.attributionCheckWindow &&
-              daysSinceInstall >= remoteSettings.attributionCheckWindow) {
-            sendAttr();
-          }
-        }
+        //   if (daysSinceInstallWhenLastSent < remoteSettings.attributionCheckWindow &&
+        //       daysSinceInstall >= remoteSettings.attributionCheckWindow) {
+        //     sendAttr();
+        //   }
+        // }
       });
     } catch (e) {
       Metriqus.errorLog("An error occurred on ProcessAttribution: $e");

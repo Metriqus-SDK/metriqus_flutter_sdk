@@ -7,19 +7,23 @@ class RequestSender {
   static const String contentTypeJson = "application/json";
 
   /// Send GET request
-  static Future<Response> getAsync(String url,
-      {Map<String, String>? headers, int timeout = 0}) async {
+  static Future<Response> getAsync(String url, {Map<String, String>? headers, int timeout = 0}) async {
     try {
       final uri = Uri.parse(url);
       final client = http.Client();
 
+      // Prepare headers with connection and user-agent hints for middleboxes/WAFs
+      final requestHeaders = {
+        'Connection': 'close',
+        'User-Agent': 'MetriqusFlutterSDK',
+        ...?headers,
+      };
+
       http.Response response;
       if (timeout > 0) {
-        response = await client
-            .get(uri, headers: headers)
-            .timeout(Duration(seconds: timeout));
+        response = await client.get(uri, headers: requestHeaders).timeout(Duration(seconds: timeout));
       } else {
-        response = await client.get(uri, headers: headers);
+        response = await client.get(uri, headers: requestHeaders);
       }
 
       client.close();
@@ -31,8 +35,7 @@ class RequestSender {
         errorType = ErrorType.protocolError;
         errors.add('HTTP ${response.statusCode}: ${response.reasonPhrase}');
 
-        Metriqus.errorLog(
-            "HTTP (protocol error) error: ${response.statusCode}, url: $url");
+        Metriqus.errorLog("HTTP (protocol error) error: ${response.statusCode}, url: $url");
       }
 
       return Response(
@@ -55,7 +58,7 @@ class RequestSender {
 
   /// Send POST request
   static Future<Response> postAsync(String url, String jsonBody,
-      {Map<String, String>? headers}) async {
+      {Map<String, String>? headers, int timeoutSeconds = 60}) async {
     try {
       // Log the outgoing request
       Metriqus.networkLog("POST_REQUEST", url, requestBody: jsonBody);
@@ -65,20 +68,23 @@ class RequestSender {
 
       Map<String, String> requestHeaders = {
         'Content-Type': contentTypeJson,
+        'Connection': 'close',
+        'User-Agent': 'MetriqusFlutterSDK',
         ...?headers,
       };
 
-      final response = await client.post(
-        uri,
-        headers: requestHeaders,
-        body: jsonBody,
-      );
+      final response = await client
+          .post(
+            uri,
+            headers: requestHeaders,
+            body: jsonBody,
+          )
+          .timeout(Duration(seconds: timeoutSeconds));
 
       client.close();
 
       // Log the response
-      Metriqus.networkLog("POST_RESPONSE", url,
-          responseBody: response.body, statusCode: response.statusCode);
+      Metriqus.networkLog("POST_RESPONSE", url, responseBody: response.body, statusCode: response.statusCode);
 
       List<String> errors = [];
       ErrorType errorType = ErrorType.noError;
@@ -87,8 +93,7 @@ class RequestSender {
         errorType = ErrorType.protocolError;
         errors.add('HTTP ${response.statusCode}: ${response.reasonPhrase}');
 
-        Metriqus.errorLog(
-            "HTTP (protocol error) error: ${response.statusCode}, url: $url");
+        Metriqus.errorLog("HTTP (protocol error) error: ${response.statusCode}, url: $url");
       }
 
       return Response(
@@ -125,8 +130,7 @@ class RequestSender {
   }
 
   /// Add custom header
-  static void addCustomHeader(
-      Map<String, String> headers, String key, String value) {
+  static void addCustomHeader(Map<String, String> headers, String key, String value) {
     headers[key] = value;
   }
 

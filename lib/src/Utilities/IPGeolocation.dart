@@ -11,9 +11,16 @@ class IPGeolocation {
     try {
       Metriqus.verboseLog('🌍 Attempting to fetch geolocation from: $_apiUrl');
 
-      final dio = Dio();
-      dio.options.connectTimeout = const Duration(seconds: 60);
-      dio.options.receiveTimeout = const Duration(seconds: 60);
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 60),
+          receiveTimeout: const Duration(seconds: 60),
+          headers: const {
+            'Connection': 'close',
+            'User-Agent': 'MetriqusFlutterSDK',
+          },
+        ),
+      );
 
       // Make HTTP request to IP API
       final response = await dio.get(_apiUrl);

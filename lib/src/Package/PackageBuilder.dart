@@ -18,7 +18,7 @@ class PackageBuilder {
   MetriqusSettings? metriqusSettings;
 
   /// Constructor
-  PackageBuilder(MetriqusSettings metriqusSettings, DeviceInfo deviceInfo) {
+  PackageBuilder(MetriqusSettings metriqusSettings, DeviceInfo? deviceInfo) {
     this.metriqusSettings = metriqusSettings;
     this.deviceInfo = deviceInfo;
     this.createdAt = MetriqusUtils.timestampSecondsToDateTime(
@@ -187,74 +187,54 @@ class PackageBuilder {
       attributionParams["ios"] = <DynamicParameter>[];
 
       // iOS-specific attribution fields (normal parameters) - exclude raw
-      _addBooleanAlways(
-          attributionParams["ios"]!, "attribution", attribution.attribution);
+      _addBooleanAlways(attributionParams["ios"]!, "attribution", attribution.attribution);
       _addIntegerAlways(attributionParams["ios"]!, "org_id", attribution.orgId);
-      _addIntegerAlways(
-          attributionParams["ios"]!, "campaign_id", attribution.campaignId);
-      _addStringAlways(attributionParams["ios"]!, "conversion_type",
-          attribution.conversionType);
-      _addStringAlways(
-          attributionParams["ios"]!, "click_date", attribution.clickDate);
-      _addStringAlways(
-          attributionParams["ios"]!, "claim_type", attribution.claimType);
-      _addIntegerAlways(
-          attributionParams["ios"]!, "ad_group_id", attribution.adGroupId);
-      _addStringAlways(attributionParams["ios"]!, "country_or_region",
-          attribution.countryOrRegion);
-      _addIntegerAlways(
-          attributionParams["ios"]!, "keyword_id", attribution.keywordId);
-      _addIntegerAlways(
-          attributionParams["ios"]!, "attribution_ad_id", attribution.adId);
+      _addIntegerAlways(attributionParams["ios"]!, "campaign_id", attribution.campaignId);
+      _addStringAlways(attributionParams["ios"]!, "conversion_type", attribution.conversionType);
+      _addStringAlways(attributionParams["ios"]!, "click_date", attribution.clickDate);
+      _addStringAlways(attributionParams["ios"]!, "claim_type", attribution.claimType);
+      _addIntegerAlways(attributionParams["ios"]!, "ad_group_id", attribution.adGroupId);
+      _addStringAlways(attributionParams["ios"]!, "country_or_region", attribution.countryOrRegion);
+      _addIntegerAlways(attributionParams["ios"]!, "keyword_id", attribution.keywordId);
+      _addIntegerAlways(attributionParams["ios"]!, "attribution_ad_id", attribution.adId);
 
       // Create params as key-value array with only raw data
       final iOSAttributionParamsArray = <Map<String, dynamic>>[];
       _addToKeyValueArray(iOSAttributionParamsArray, "raw", attribution.raw);
 
       // Add params as key-value array
-      attributionParams["ios"]!
-          .add(DynamicParameter("params", iOSAttributionParamsArray));
+      attributionParams["ios"]!.add(DynamicParameter("params", iOSAttributionParamsArray));
     } else if (MetriqusUtils.isAndroid) {
       attributionParams["android"] = <DynamicParameter>[];
 
       // Android-specific attribution fields (normal parameters) - exclude raw
-      _addStringAlways(
-          attributionParams["android"]!, "source", attribution.source);
-      _addStringAlways(
-          attributionParams["android"]!, "medium", attribution.medium);
-      _addStringAlways(
-          attributionParams["android"]!, "campaign", attribution.campaign);
+      _addStringAlways(attributionParams["android"]!, "source", attribution.source);
+      _addStringAlways(attributionParams["android"]!, "medium", attribution.medium);
+      _addStringAlways(attributionParams["android"]!, "campaign", attribution.campaign);
       _addStringAlways(attributionParams["android"]!, "term", attribution.term);
-      _addStringAlways(
-          attributionParams["android"]!, "content", attribution.content);
+      _addStringAlways(attributionParams["android"]!, "content", attribution.content);
 
       // Add custom parameters if available
       if (attribution.params != null && attribution.params!.isNotEmpty) {
         for (final param in attribution.params!) {
           if (param.value is String) {
-            _addString(attributionParams["android"]!, param.name,
-                param.value as String);
+            _addString(attributionParams["android"]!, param.name, param.value as String);
           } else if (param.value is int) {
-            _addInteger(
-                attributionParams["android"]!, param.name, param.value as int);
+            _addInteger(attributionParams["android"]!, param.name, param.value as int);
           } else if (param.value is double) {
-            _addFloat(attributionParams["android"]!, param.name,
-                param.value as double);
+            _addFloat(attributionParams["android"]!, param.name, param.value as double);
           } else if (param.value is bool) {
-            _addBoolean(
-                attributionParams["android"]!, param.name, param.value as bool);
+            _addBoolean(attributionParams["android"]!, param.name, param.value as bool);
           }
         }
       }
 
       // Create params as key-value array with only raw data
       final androidAttributionParamsArray = <Map<String, dynamic>>[];
-      _addToKeyValueArray(
-          androidAttributionParamsArray, "raw", attribution.raw);
+      _addToKeyValueArray(androidAttributionParamsArray, "raw", attribution.raw);
 
       // Add params as key-value array
-      attributionParams["android"]!
-          .add(DynamicParameter("params", androidAttributionParamsArray));
+      attributionParams["android"]!.add(DynamicParameter("params", androidAttributionParamsArray));
     }
 
     package.attribution = attributionParams;
@@ -277,15 +257,11 @@ class PackageBuilder {
     _addStringAlways(publisherParameters, "ad_currency", event.currency);
 
     if (event.adImpressionsCount != null) {
-      _addInteger(publisherParameters, "ad_impression_count",
-          event.adImpressionsCount!);
+      _addInteger(publisherParameters, "ad_impression_count", event.adImpressionsCount!);
     }
-    _addStringAlways(
-        publisherParameters, "ad_revenue_network", event.adRevenueNetwork);
-    _addStringAlways(
-        publisherParameters, "ad_revenue_unit", event.adRevenueUnit?.value);
-    _addStringAlways(
-        publisherParameters, "ad_revenue_placement", event.adRevenuePlacement);
+    _addStringAlways(publisherParameters, "ad_revenue_network", event.adRevenueNetwork);
+    _addStringAlways(publisherParameters, "ad_revenue_unit", event.adRevenueUnit?.value);
+    _addStringAlways(publisherParameters, "ad_revenue_placement", event.adRevenuePlacement);
 
     package.publisher = publisherParameters;
   }
@@ -321,9 +297,7 @@ class PackageBuilder {
       }).toList();
 
       // Add to eventParams field - store the structured array data
-      package.eventParams = [
-        DynamicParameter("event_parameters_data", parametersArray)
-      ];
+      package.eventParams = [DynamicParameter("event_parameters_data", parametersArray)];
     }
   }
 
@@ -349,8 +323,7 @@ class PackageBuilder {
         }
       }
       // During initialization, get first launch time directly from native
-      package.userFirstTouchTimestamp =
-          MetriqusUtils.dateTimeToUtcTimestampSeconds(
+      package.userFirstTouchTimestamp = MetriqusUtils.dateTimeToUtcTimestampSeconds(
         native?.getFirstLaunchTime() ?? MetriqusUtils.getUtcStartTime(),
       );
       package.environment = metriqusSettings?.environment.name ?? 'production';
@@ -406,8 +379,7 @@ class PackageBuilder {
           "tracking_enabled",
           deviceInfo!.trackingEnabled.toString().toUpperCase(),
         );
-        _addString(
-            deviceParameters, "platform", deviceInfo!.platform.toString());
+        _addString(deviceParameters, "platform", deviceInfo!.platform.toString());
 
         // Debug log
         Metriqus.verboseLog(
@@ -464,8 +436,7 @@ class PackageBuilder {
 
         // Store as DynamicParameter array like item_params
         final userPropertiesParameters = <DynamicParameter>[];
-        userPropertiesParameters
-            .add(DynamicParameter("user_properties_data", userAttributesArray));
+        userPropertiesParameters.add(DynamicParameter("user_properties_data", userAttributesArray));
         package.userAttributes = userPropertiesParameters;
       }
     } catch (e) {
@@ -528,15 +499,13 @@ class PackageBuilder {
     list.add(DynamicParameter(key, value));
   }
 
-  void _addStringAlways(
-      List<DynamicParameter> list, String key, String? value) {
+  void _addStringAlways(List<DynamicParameter> list, String key, String? value) {
     // Always add the parameter, even if null or empty
     list.add(DynamicParameter(key, value ?? ""));
   }
 
   /// Helper method for adding parameters to key-value array format (like itemParams)
-  void _addToKeyValueArray(
-      List<Map<String, dynamic>> array, String key, dynamic value) {
+  void _addToKeyValueArray(List<Map<String, dynamic>> array, String key, dynamic value) {
     if (value != null) {
       final Map<String, dynamic> valueMap = {};
 
@@ -631,12 +600,9 @@ class Package {
       'item': item?.map((param) => param.toJson()).toList(),
       'publisher': publisher?.map((param) => param.toJson()).toList(),
       'attribution': attribution?.map(
-        (key, value) =>
-            MapEntry(key, value.map((param) => param.toJson()).toList()),
+        (key, value) => MapEntry(key, value.map((param) => param.toJson()).toList()),
       ),
-      'parameters': parameters
-          ?.map((param) => {'name': param.name, 'value': param.value})
-          .toList(),
+      'parameters': parameters?.map((param) => {'name': param.name, 'value': param.value}).toList(),
       'userAttributes': userAttributes?.map((param) => param.toJson()).toList(),
       'eventParams': eventParams?.map((param) => param.toJson()).toList(),
     };

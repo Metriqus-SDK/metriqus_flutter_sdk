@@ -29,10 +29,8 @@ class Metriqus {
   static Timer? _sessionBeatTimer;
 
   // Stream controllers for events
-  static final StreamController<String> _onLogController =
-      StreamController<String>.broadcast();
-  static final StreamController<bool> _onSdkInitializeController =
-      StreamController<bool>.broadcast();
+  static final StreamController<String> _onLogController = StreamController<String>.broadcast();
+  static final StreamController<bool> _onSdkInitializeController = StreamController<bool>.broadcast();
 
   // Public getters
   static Stream<String> get onLog => _onLogController.stream;
@@ -83,8 +81,7 @@ class Metriqus {
           _startSessionBeatTimer();
           _onSdkInitializeController.add(true);
         } else {
-          errorLog(
-              "❌ Metriqus SDK initialization failed - native returned false");
+          errorLog("❌ Metriqus SDK initialization failed - native returned false");
           _onSdkInitializeController.add(false);
         }
       } catch (nativeError) {
@@ -377,8 +374,7 @@ class Metriqus {
   static Future<String> getClientSdk() async {
     try {
       // Read pubspec.yaml from assets
-      final pubspecContent = await rootBundle
-          .loadString('packages/metriqus_flutter_sdk/pubspec.yaml');
+      final pubspecContent = await rootBundle.loadString('packages/metriqus_flutter_sdk/pubspec.yaml');
 
       // Parse YAML content properly
       final yamlDoc = loadYaml(pubspecContent);
@@ -428,6 +424,12 @@ class Metriqus {
     } catch (e) {
       errorLog("Error executing callback: $e");
     }
+  }
+
+  /// Retry attribution after SDK is initialized
+  static void retryAttribution() {
+    if (!_checkInitialization()) return;
+    _native!.processAttributionNow();
   }
 
   /// Get if this is first launch (for backward compatibility)
@@ -547,16 +549,14 @@ class Metriqus {
   }
 
   /// Helper method to determine if a message should be printed to console
-  static bool _shouldPrintToConsole(
-      LogLevel currentLogLevel, LogLevel messageLevel) {
+  static bool _shouldPrintToConsole(LogLevel currentLogLevel, LogLevel messageLevel) {
     switch (currentLogLevel) {
       case LogLevel.noLog:
         return false; // Never print to console
       case LogLevel.errorsOnly:
         return messageLevel == LogLevel.errorsOnly;
       case LogLevel.debug:
-        return messageLevel == LogLevel.errorsOnly ||
-            messageLevel == LogLevel.debug;
+        return messageLevel == LogLevel.errorsOnly || messageLevel == LogLevel.debug;
       case LogLevel.verbose:
         return true; // Print all levels
     }
@@ -579,15 +579,13 @@ class Metriqus {
 
   /// Event logging for tracking events
   static void eventLog(String eventName, Map<String, dynamic>? parameters) {
-    String paramStr =
-        parameters != null ? " | Parameters: ${parameters.toString()}" : "";
+    String paramStr = parameters != null ? " | Parameters: ${parameters.toString()}" : "";
     debugLog("📊 EVENT: $eventName$paramStr", LogLevel.debug);
   }
 
   /// EventQueue logging for queue operations
   static void eventQueueLog(String operation, {Map<String, dynamic>? details}) {
-    String detailStr =
-        details != null ? " | Details: ${details.toString()}" : "";
+    String detailStr = details != null ? " | Details: ${details.toString()}" : "";
     debugLog("📦 EVENTQUEUE: $operation$detailStr", LogLevel.verbose);
   }
 

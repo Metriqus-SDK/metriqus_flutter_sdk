@@ -37,22 +37,26 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       print(
         '🔧 Metriqus SDK Initialization: ${isInitialized ? 'SUCCESS' : 'FAILED'}',
       );
+      if (isInitialized) {
+        // Retry attribution explicitly after successful init
+        Metriqus.retryAttribution();
+      }
     });
   }
 
-  void _initSDK() {
+  Future<void> _initSDK() async {
     print('🚀 Starting Metriqus SDK initialization...');
 
     final settings = MetriqusSettings(
-      clientKey: 'YOUR CLIENT KEY',
-      clientSecret: 'YOUR CLIENT SECRET',
+      clientKey: 'bwwknjmjelo2klmu',
+      clientSecret: 'bIrlx2M61pUZ7PzZ0SXTqnFAtIqBT7wM',
       environment: Environment.sandbox,
       logLevel: LogLevel.noLog,
     );
 
     print('🔧 Settings: ${settings.environment} - ${settings.logLevel}');
 
-    Metriqus.initSdk(settings);
+    await Metriqus.initSdk(settings);
 
     print('🔄 SDK initialization method called');
   }
@@ -250,9 +254,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // trackAdRevenue Function
   void _trackAdRevenue() {
     _setLoading();
-    final adRevenue = MetriqusAdRevenue.withRevenue(
-        0.15, 'USD', MetriqusAdUnit.banner,
-        source: 'metriqus');
+    final adRevenue = MetriqusAdRevenue.withRevenue(0.15, 'USD', MetriqusAdUnit.banner, source: 'metriqus');
     adRevenue.adRevenueNetwork = 'AdMob';
     adRevenue.adRevenuePlacement = 'main_screen';
     adRevenue.adImpressionsCount = 1;
@@ -263,8 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // AdMob Ad Revenue Tracking
   void _trackAdmobAdRevenue() {
     _setLoading();
-    final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(
-        0.22, 'EUR', MetriqusAdUnit.interstitial);
+    final admobRevenue = MetriqusAdmobAdRevenue.withRevenue(0.22, 'EUR', MetriqusAdUnit.interstitial);
     admobRevenue.adRevenueNetwork = 'AdMob';
     admobRevenue.adRevenuePlacement = 'interstitial';
     admobRevenue.adImpressionsCount = 1;
@@ -275,8 +276,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // AppLovin Ad Revenue Tracking
   void _trackApplovinAdRevenue() {
     _setLoading();
-    final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(
-        0.18, 'USD', MetriqusAdUnit.rewarded);
+    final applovinRevenue = MetriqusApplovinAdRevenue.withRevenue(0.18, 'USD', MetriqusAdUnit.rewarded);
     applovinRevenue.adRevenueNetwork = 'AppLovin MAX';
     applovinRevenue.adRevenuePlacement = 'level_complete';
     applovinRevenue.adImpressionsCount = 1;
@@ -341,8 +341,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getAdid() {
     _setLoading();
     final adid = Metriqus.getAdid();
-    final shortAdid =
-        adid != null ? '${adid.substring(0, 8)}...' : 'Not available';
+    final shortAdid = adid != null ? '${adid.substring(0, 8)}...' : 'Not available';
     _updateStatus('✅ Advertising ID Retrieved: $shortAdid');
   }
 
@@ -360,8 +359,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getUniqueUserId() {
     _setLoading();
     final userId = Metriqus.getUserId();
-    final shortUserId =
-        userId != null ? '${userId.substring(0, 8)}...' : 'Not available';
+    final shortUserId = userId != null ? '${userId.substring(0, 8)}...' : 'Not available';
     _updateStatus('✅ User ID Retrieved: $shortUserId');
   }
 
@@ -369,8 +367,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getSessionId() {
     _setLoading();
     final sessionId = Metriqus.getSessionId();
-    final shortSessionId =
-        sessionId != null ? '${sessionId.substring(0, 8)}...' : 'Not available';
+    final shortSessionId = sessionId != null ? '${sessionId.substring(0, 8)}...' : 'Not available';
     _updateStatus('✅ Session ID Retrieved: $shortSessionId');
   }
 
@@ -502,7 +499,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     const Text(
                       'Function Result:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -590,10 +587,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
             // Footer
             const Center(
-              child: Text(
+              child: const Text(
                 'Metriqus Flutter SDK Example',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

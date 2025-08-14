@@ -23,12 +23,12 @@ class MetriqusPackageSender implements IPackageSender {
       final native = Metriqus.native;
       final deviceInfo = native?.getDeviceInfo;
 
-      if (deviceInfo == null) {
-        Metriqus.verboseLog(
-          "Device info not yet available, skipping package send",
-        );
-        return;
-      }
+      // if (deviceInfo == null) {
+      //   Metriqus.verboseLog(
+      //     "Device info not yet available, skipping package send",
+      //   );
+      //   return;
+      // }
 
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildCustomEventPackage(customEvent);
@@ -53,12 +53,12 @@ class MetriqusPackageSender implements IPackageSender {
       final native = Metriqus.native;
       final deviceInfo = native?.getDeviceInfo;
 
-      if (deviceInfo == null) {
-        Metriqus.verboseLog(
-          "Device info not yet available, skipping package send",
-        );
-        return;
-      }
+      // if (deviceInfo == null) {
+      //   Metriqus.verboseLog(
+      //     "Device info not yet available, skipping package send",
+      //   );
+      //   return;
+      // }
 
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildSessionStartPackage();
@@ -83,12 +83,12 @@ class MetriqusPackageSender implements IPackageSender {
       final native = Metriqus.native;
       final deviceInfo = native?.getDeviceInfo;
 
-      if (deviceInfo == null) {
-        Metriqus.verboseLog(
-          "Device info not yet available, skipping package send",
-        );
-        return;
-      }
+      // if (deviceInfo == null) {
+      //   Metriqus.verboseLog(
+      //     "Device info not yet available, skipping package send",
+      //   );
+      //   return;
+      // }
 
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildSessionBeatPackage();
@@ -113,12 +113,12 @@ class MetriqusPackageSender implements IPackageSender {
       final native = Metriqus.native;
       final deviceInfo = native?.getDeviceInfo;
 
-      if (deviceInfo == null) {
-        Metriqus.verboseLog(
-          "Device info not yet available, skipping package send",
-        );
-        return;
-      }
+      // if (deviceInfo == null) {
+      //   Metriqus.verboseLog(
+      //     "Device info not yet available, skipping package send",
+      //   );
+      //   return;
+      // }
 
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildIAPEventPackage(metriqusEvent);
@@ -143,12 +143,12 @@ class MetriqusPackageSender implements IPackageSender {
       final native = Metriqus.native;
       final deviceInfo = native?.getDeviceInfo;
 
-      if (deviceInfo == null) {
-        Metriqus.verboseLog(
-          "Device info not yet available, skipping package send",
-        );
-        return;
-      }
+      // if (deviceInfo == null) {
+      //   Metriqus.verboseLog(
+      //     "Device info not yet available, skipping package send",
+      //   );
+      //   return;
+      // }
 
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildAdRevenueEventPackage(adRevenue);
@@ -173,12 +173,12 @@ class MetriqusPackageSender implements IPackageSender {
       final native = Metriqus.native;
       final deviceInfo = native?.getDeviceInfo;
 
-      if (deviceInfo == null) {
-        Metriqus.verboseLog(
-          "Device info not yet available, skipping package send",
-        );
-        return;
-      }
+      // if (deviceInfo == null) {
+      //   Metriqus.verboseLog(
+      //     "Device info not yet available, skipping package send",
+      //   );
+      //   return;
+      // }
 
       final builder = PackageBuilder(settings, deviceInfo);
       final package = await builder.buildAttributionPackage(attribution);
